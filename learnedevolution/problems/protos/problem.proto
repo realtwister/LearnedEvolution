@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+message Problem{
+  string type = 1;
+  int32 dimension = 2;
+  message param{
+    string key = 1;
+    repeated float value = 2;
+  }
+  repeated param params =3;
+}

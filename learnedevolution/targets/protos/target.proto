@@ -1,0 +1,17 @@
+syntax = "proto3"
+
+message Target{
+  enum TargetType{
+    mean = 1;
+    covariance = 2;
+  }
+
+    string type = 1;
+    string class = 2;
+    string name = 3;
+    message param {
+        string key = 1;
+        repeated float value = 2;
+    }
+    repeated param params = 4;
+}
