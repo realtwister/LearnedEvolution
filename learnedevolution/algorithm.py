@@ -4,6 +4,9 @@ import tensorflow as tf;
 
 from .utils.signals import method_event;
 
+import logging;
+log = logging.getLogger(__name__)
+
 class Algorithm(object):
     __epsilon = 1e-5;
     @method_event('initialize')
@@ -54,16 +57,20 @@ class Algorithm(object):
             maximum_iterations = self._maximum_iterations;
         self.reset();
         for self._iteration in range(maximum_iterations):
-            self._step(fitness);
+            if self._step(fitness):
+                break;
+        else:
+            self._terminate(fitness);
         return self._mean, self._covariance;
 
     @method_event('step')
     def _step(self, fitness):
         population = self._sample();
         self._evaluated_fitness = evaluated_fitness = fitness(population);
+        self._mean_fitness = np.mean(self._evaluated_fitness);
         mean = self._calculate_mean(population, evaluated_fitness);
         covariance = self._calculate_covariance(population, evaluated_fitness);
-        return self._is_converged();
+        return self._is_converged(fitness);
 
 
 
@@ -89,20 +96,26 @@ class Algorithm(object):
         return covariance;
 
     @method_event('is_converged')
-    def _is_converged(self):
+    def _is_converged(self, fitness):
         if np.trace(self._covariance)/self._dimension < self.__epsilon:
             self._converged += 1;
             if self._converged >= 5:
-                self._terminate();
+                self._terminate(fitness);
                 return True;
         else:
             self._converged = 0;
         return False;
 
     @method_event('terminate')
-    def _terminate(self):
+    def _terminate(self, fitness):
         population = self._sample();
-        self._call_on_targets('terminating', [population]);
+        self._evaluated_fitness = evaluated_fitness = fitness(population);
+        self._mean_fitness = np.mean(self._evaluated_fitness);
+        self._call_on_targets('terminating', [population, evaluated_fitness]);
+
+    @property
+    def current_step(self):
+        return self._steps;
 
     def _call_on_targets(self, method, args =[]):
         for mean_target in self._mean_targets:

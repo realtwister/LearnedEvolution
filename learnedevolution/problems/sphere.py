@@ -13,10 +13,11 @@ class Sphere(Problem, RandomGeneratable):
     _type = "Sphere";
 
     def __init__(self, a, b):
+        super().__init__(len(a));
         self._evaluations = 0;
         self._params = dict(
             a = np.array(a),
-            b = b
+            b = np.array([b])
         )
 
     @staticmethod
@@ -28,7 +29,7 @@ class Sphere(Problem, RandomGeneratable):
     def fitness(self, xs):
         super().fitness(xs);
         xs = xs-self._params['a'];
-        s = -np.add.reduce(xs*xs, axis = 1, keepdims = False) + self._params['b'];
+        s = np.add.reduce(xs*xs, axis = 1, keepdims = False) + self._params['b'];
         return s;
 
     @property

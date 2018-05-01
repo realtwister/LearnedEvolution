@@ -22,7 +22,8 @@ class RandomGenerator(object):
         self._random_state = np.random.RandomState(seed);
 
     def generate(self):
-        return self._class.random(self._random_state, **self._kwargs);
+        self._current = self._class.random(self._random_state, **self._kwargs);
+        return self._current;
 
     def iter(self, n = 0):
         i = 0;

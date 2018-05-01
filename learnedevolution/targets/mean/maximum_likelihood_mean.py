@@ -9,6 +9,6 @@ class MaximumLikelihoodMean(MeanTarget):
 
     def _calculate(self, population, evaluated_fitness):
         N_select = np.ceil(self.p['selection_fraction'] * population.shape[0]).astype(int);
-        selected = population[np.argsort(evaluated_fitness)[-N_select:]];
+        selected = population[np.argsort(evaluated_fitness)[:N_select]];
         self._target = np.mean(selected, axis = 0);
         return self._target;

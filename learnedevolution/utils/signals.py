@@ -1,8 +1,11 @@
 import blinker as b;
-from .logging import log;
+
+
+import logging;
+log = logging.getLogger(__name__)
 
 def signal(name):
-    return b.signal("structevol."+name);
+    return b.signal("learnedevolution."+name);
 
 def method_event(name, before= True, after = True):
     if before:
@@ -61,6 +64,7 @@ class TimedCallback(object):
         if self._connected:
             log.info("Already connected so not doing anything.")
             return self;
+        self.reset_timer();
         self._signal.connect(self._callback, sender = self._sender, weak = False);
         self._connected = True;
         return self;
@@ -75,8 +79,10 @@ class TimedCallback(object):
 
     def _one_shot_callback(self, *args, **kwargs):
         if self._connected:
-            self._call_callbacks(args,kwargs);
-            self.disconnect();
+            if self._current_timer >= 0:
+                self._call_callbacks(args,kwargs);
+                self.disconnect();
+            self._current_timer += 1;
         else:
             log.info("Callback called without being connected.");
 
