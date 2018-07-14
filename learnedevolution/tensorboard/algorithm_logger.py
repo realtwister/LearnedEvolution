@@ -7,7 +7,6 @@ class AlgorithmLogger(Logger):
         assert isinstance(algorithm, Algorithm);
         Logger.__init__(self, algorithm, logdir);
 
-        self.recorder = Recorder(self);
         self.init_recorder();
 
     def init_recorder(self):

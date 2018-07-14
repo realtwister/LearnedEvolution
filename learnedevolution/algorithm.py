@@ -3,6 +3,7 @@ import numpy as np;
 import tensorflow as tf;
 
 from .utils.signals import method_event;
+from .convergence.convergence_criterion import ConvergenceCriterion;
 
 import logging;
 log = logging.getLogger(__name__)
@@ -10,7 +11,7 @@ log = logging.getLogger(__name__)
 class Algorithm(object):
     __epsilon = 1e-5;
     @method_event('initialize')
-    def __init__(self, dimension, mean_targets, covariance_targets,
+    def __init__(self, dimension, mean_targets, covariance_targets, convergence_criteria,
         population_size = 100,
         maximum_iterations = 100):
 
@@ -18,6 +19,8 @@ class Algorithm(object):
 
         self._mean_targets = mean_targets;
         self._covariance_targets = covariance_targets;
+        # recursive convergence check for logic groups
+        self._convergence_criteria = convergence_criteria;
 
         self._population_size = population_size;
         self._maximum_iterations = maximum_iterations;
@@ -41,36 +44,53 @@ class Algorithm(object):
 
         self._call_on_targets('reset', (self._mean, self._covariance));
 
+        for criterion in self._convergence_criteria:
+            criterion.reset(self._mean, self._covariance);
+
 
         self._converged = 0;
         self._steps += 1;
+        self._iteration = 0;
 
     def _initial_mean(self):
-        return np.zeros(self._dimension);
+        d = self._random_state.standard_normal(self._dimension);
+        d = d/np.linalg.norm(d); #https://math.stackexchange.com/questions/446959/algorithm-to-generate-an-uniform-distribution-of-points-in-the-volume-of-an-hype?rq=1;
+        r = 20+self._random_state.rand()*80;
+        mean = r*d;
+        return mean;
 
     def _initial_covariance(self):
         return np.eye(self._dimension);
 
     @method_event('maximize')
-    def maximize(self, fitness, maximum_iterations = None):
+    def maximize(self, fitness, maximum_iterations = None, deterministic=False):
         if maximum_iterations is None:
             maximum_iterations = self._maximum_iterations;
         self.reset();
-        for self._iteration in range(maximum_iterations):
-            if self._step(fitness):
+        while True:
+            converged = self._step(fitness, deterministic);
+            if converged or self._iteration >= maximum_iterations:
                 break;
-        else:
-            self._terminate(fitness);
         return self._mean, self._covariance;
 
     @method_event('step')
-    def _step(self, fitness):
+    def _step(self, fitness, deterministic=False):
+        # Sample new population
         population = self._sample();
+        # Evaluate fitness of population
         self._evaluated_fitness = evaluated_fitness = fitness(population);
-        self._mean_fitness = np.mean(self._evaluated_fitness);
-        mean = self._calculate_mean(population, evaluated_fitness);
-        covariance = self._calculate_covariance(population, evaluated_fitness);
-        return self._is_converged(fitness);
+
+        # Calculate new mean
+        mean = self._calculate_mean(population, evaluated_fitness, deterministic);
+
+        #Calculate new covariance
+        covariance = self._calculate_covariance(population, evaluated_fitness, deterministic);
+
+        self._iteration += 1;
+        if self._is_converged(evaluated_fitness):
+            self._terminate(fitness,deterministic);
+            return True;
+        return False;
 
 
 
@@ -82,36 +102,45 @@ class Algorithm(object):
         return self._population;
 
     @method_event('calculate_mean')
-    def _calculate_mean(self, population, evaluated_fitness):
-        self._mean = mean = np.zeros(self._dimension);
+    def _calculate_mean(self, population, evaluated_fitness,deterministic):
+        mean = np.zeros(self._dimension);
         for mean_target, w in self._mean_targets.items():
-            mean += w * mean_target(population, evaluated_fitness);
+            mean += w * mean_target(population, evaluated_fitness, deterministic);
+        self._call_on_targets('update_mean', [mean])
+        self._mean = mean;
         return mean;
 
     @method_event('calculate_covariance')
-    def _calculate_covariance(self, population, evaluated_fitness):
-        self._covariance = covariance = np.zeros(shape=(self._dimension, self._dimension));
+    def _calculate_covariance(self, population, evaluated_fitness,deterministic):
+        covariance = np.zeros(shape=(self._dimension, self._dimension));
         for target, w in self._covariance_targets.items():
-            covariance += w * target(population, evaluated_fitness);
+            covariance += w * target(population, evaluated_fitness,deterministic);
+        self._call_on_targets('update_covariance', [covariance])
+        self._covariance = covariance
         return covariance;
 
     @method_event('is_converged')
     def _is_converged(self, fitness):
+        converged = False;
+        for criterion in self._convergence_criteria:
+            converged |= criterion(fitness, self._mean, self._covariance);
+
+        return converged;
+
         if np.trace(self._covariance)/self._dimension < self.__epsilon:
             self._converged += 1;
             if self._converged >= 5:
-                self._terminate(fitness);
                 return True;
         else:
             self._converged = 0;
         return False;
 
     @method_event('terminate')
-    def _terminate(self, fitness):
+    def _terminate(self, fitness, deterministic):
         population = self._sample();
         self._evaluated_fitness = evaluated_fitness = fitness(population);
         self._mean_fitness = np.mean(self._evaluated_fitness);
-        self._call_on_targets('terminating', [population, evaluated_fitness]);
+        self._call_on_targets('terminating', [population, evaluated_fitness,deterministic]);
 
     @property
     def current_step(self):

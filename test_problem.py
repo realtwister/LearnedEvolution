@@ -8,14 +8,13 @@ print(problem._params['a']);
 print(problem.fitness(np.array([[1,1],[0,0]])));
 
 
-problem_generator = le.problems.Sphere.generator(dimension = 3);
+problem_generator = le.problems.Rosenbrock.generator(dimension = 2);
 
 for problem in problem_generator.iter():
     print(problem);
     break;
 
-i = 0;
-for problem in problem_generator.iter(100):
-    i+=1;
 
-print(i);
+from scipy.optimize import fmin;
+
+print(fmin(problem.fitness,np.array([-22,70])));

@@ -1,6 +1,7 @@
 import tensorflow as tf;
 import logging;
 import os;
+from learnedevolution.problems import *;
 
 from learnedevolution.tensorboard.algorithm_logger import AlgorithmLogger;
 from learnedevolution.tensorboard.generator_logger import GeneratorLogger;
@@ -13,13 +14,12 @@ from learnedevolution.rewards.normalized_fitness_reward import NormalizedFitness
 from learnedevolution.convergence.convergence_criterion import ConvergenceCriterion;
 from learnedevolution.convergence.time_convergence import TimeConvergence;
 
-logging.basicConfig(level="DEBUG");
-
+# Algo setting
 dimension = 2;
 population_size = 100;
 seed = 1000;
 
-
+# Logdir
 base_path = '/tmp/thesis/logger/';
 if True:
     i = 0;
@@ -83,29 +83,59 @@ reward_log.recorder.watch('_maximum', 'maximum');
 convergence_log = log.create_child(algo._convergence_criteria[0]);
 convergence_log.watch_scalar('epsilon', 'after_reset', once_in=10, tag="epsilon");
 
+problems = [
+    Sphere
+];
 
+# Problem suite
 
-problem_generator = lev.problems.Rosenbrock.generator(dimension=dimension);
-gen_log = GeneratorLogger(problem_generator, logdir);
+suite = ProblemSuite(problems, dimension= dimension);
 
-# seeding
-problem_generator.seed(seed);
+gen_log = GeneratorLogger(suite, logdir);
+
+# Settings
+N_test = 1;
+N_train = 100;
+epochs = 100;
+
+#Seeding
 algo.seed(seed);
-
-#log.watch_scalar('_mean_fitness', 'before_reset', once_in=1, tag="mean_fitness");
-#log.watch_histogram('_evaluated_fitness', 'before_reset', once_in=1, tag="evaluated_fitness");
+suite.seed(seed);
 
 
-i = 0;
-for problem in problem_generator.iter(10000):
-    if i%100==0:
+# Algorithm
+
+test_suite_state = suite.get_state();
+test_algo_state = algo._random_state.get_state();
+train_suite_state = None;
+train_algo_state = None;
+
+
+for i in range(epochs):
+    # Test algo
+    suite.set_state(test_suite_state);
+    algo._random_state.set_state(test_algo_state);
+    print("Starting test....")
+    for problem in suite.iter(N_test):
+        algo._steps -=1;
+        temp_suite_state = suite.get_state();
+        temp_algo_state = algo._random_state.get_state();
         log.record(suffix="deterministic");
         gen_log.add_current('problem', algo.current_step+1);
-        random_state_backup = algo._random_state.get_state();
         mean, covariance = algo.maximize(problem.fitness, 100, True);
+        suite.set_state(temp_suite_state);
+        algo._random_state.set_state(temp_algo_state);
         algo._steps -=1;
-        algo._random_state.set_state(random_state_backup);
         log.record();
+        mean, covariance = algo.maximize(problem.fitness, 100);
+    print("Test ended");
 
-    mean, covariance = algo.maximize(problem.fitness, 100);
-    i+=1;
+    # Train algo
+    if train_suite_state is not None:
+        suite.set_state(train_suite_state);
+        algo._random_state.set_state(train_algo_state);
+
+    for problem in suite.iter(N_train):
+        mean, covariance = algo.maximize(problem.fitness, 100);
+    train_suite_state = suite.get_state();
+    train_algo_state = algo._random_state.get_state();

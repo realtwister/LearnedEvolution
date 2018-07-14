@@ -12,9 +12,10 @@ class Recorder(object):
     def __init__(self, logger):
         self._logger = logger;
         self._instance = logger._instance;
+        self._algorithm = logger._algorithm;
 
-        self._stop_recording_callback = TimedCallback('after_terminate', fns = self._stop_recording, one_shot = True, sender = self._instance);
-        self._record_step_callback = TimedCallback('after_step', fns = self._record_step, sender = self._instance);
+        self._stop_recording_callback = TimedCallback('after_terminate', fns = self._stop_recording, one_shot = True, sender = self._algorithm);
+        self._record_step_callback = TimedCallback('after_step', fns = self._record_step, sender = self._algorithm);
         self.recording = False;
 
         self._watching = {};
@@ -23,13 +24,20 @@ class Recorder(object):
         if tag is None:
             tag = variable;
         self._watching[variable] = tag;
+        log.debug('Recorder for {} is now watching {} as {}'.format(self._instance.__class__.__name__, variable, tag))
 
-    def record(self):
+    def record(self, suffix = None, metadata={}):
         assert not self.recording, 'Trying to start recording while already recording';
         self.recording = True;
         self._stop_recording_callback.connect();
         self._record_step_callback.connect();
         self._data = {key:[] for key in self._watching};
+        log.debug('recording {} for {}'.format(self._data.keys(), self._instance.__class__.__name__));
+        if suffix is not None:
+            self._suffix = "."+suffix;
+        else:
+            self._suffix = "";
+        self._metadata = metadata;
 
 
     def _record_step(self, *args, **kwargs):
@@ -39,9 +47,10 @@ class Recorder(object):
 
 
     def _stop_recording(self,*args, **kwargs):
-        log.debug("Adding run for step {}".format(self._instance.current_step));
+        log.debug("Adding run for step {}".format(self._algorithm.current_step));
+        self._record_step()
         summary = self._create_summary();
-        self._logger._writer.add_summary(summary,self._instance.current_step);
+        self._logger._writer.add_summary(summary,self._algorithm.current_step);
         self._logger._writer.flush();
         self._record_step_callback.disconnect();
         self.recording = False;
@@ -61,7 +70,7 @@ class Recorder(object):
 
             proto = tf.make_tensor_proto(array);
             summary.value.add(
-                tag = tag,
+                tag = self._logger._prefix+tag+self._suffix,
                 metadata = summary_metadata,
                 tensor = proto
             );

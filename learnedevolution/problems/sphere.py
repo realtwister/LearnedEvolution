@@ -17,19 +17,19 @@ class Sphere(Problem, RandomGeneratable):
         self._evaluations = 0;
         self._params = dict(
             a = np.array(a),
-            b = np.array([b])
+            b = np.array([0])
         )
 
     @staticmethod
     def random(random_state, dimension, position_spread = 100, offset_spread = 10 ):
-        a = random_state.rand(dimension) * position_spread;
+        a = np.zeros(dimension);
         b = random_state.rand() * offset_spread;
         return Sphere(a,b);
 
     def fitness(self, xs):
         super().fitness(xs);
         xs = xs-self._params['a'];
-        s = np.add.reduce(xs*xs, axis = 1, keepdims = False) + self._params['b'];
+        s = -np.linalg.norm(xs, axis = -1);
         return s;
 
     @property

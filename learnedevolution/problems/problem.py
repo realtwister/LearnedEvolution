@@ -1,8 +1,10 @@
 import numpy as np
 from .protos.problem_pb2 import Problem as ProblemProto;
 
+from ..utils.random import RandomGeneratable;
 
-class Problem(object):
+
+class Problem(RandomGeneratable):
     """Abstract problem class to provide an interface for the algorithms"""
 
     _type = "NONE";
@@ -11,6 +13,7 @@ class Problem(object):
         self._dimension = dimension;
 
         self._evaluations = 0;
+
 
     def fitness(self, xs):
         self._evaluations += xs.shape[0];

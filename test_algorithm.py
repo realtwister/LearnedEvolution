@@ -2,13 +2,17 @@ import learnedevolution as lev;
 import numpy as np;
 
 dimension = 2;
+population_size = 100;
 
 problem_generator = lev.problems.Sphere.generator(dimension=dimension);
 
 
-mean_targets = {lev.targets.mean.MaximumLikelihoodMean():1};
+mean_targets = {
+    #lev.targets.mean.BaselinePPOMean(dimension, population_size):1,
+    lev.targets.mean.TensorforcePPOMean(dimension, population_size):1,
+    };
 covariance_targets ={lev.targets.covariance.ConstantCovariance():1};
-algo = lev.Algorithm(dimension, mean_targets, covariance_targets);
+algo = lev.Algorithm(dimension, mean_targets, covariance_targets, population_size=population_size);
 
 for problem in problem_generator.iter(1):
     algo.reset();
