@@ -3,6 +3,8 @@ import numpy as np;
 from tensorflow.core.framework import tensor_pb2
 from learnedevolution.utils.signals import TimedCallback;
 
+import json;
+
 import logging;
 log = logging.getLogger(__name__)
 
@@ -62,7 +64,8 @@ class Recorder(object):
             display_name=None,
             summary_description=None,
             plugin_data=tf.SummaryMetadata.PluginData(
-                plugin_name=PLUGIN_NAME
+                plugin_name=PLUGIN_NAME,
+                content=json.dumps(self._metadata).encode()
             )
         )
         for variable, tag in self._watching.items():

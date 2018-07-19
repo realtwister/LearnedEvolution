@@ -82,7 +82,7 @@ class NormalizedFitnessReward(Reward):
         norm_minimum = -float('Inf');
         norm_maximum = -float('Inf');
         for minimum in self.minima:
-            cur_min = minimum(current_min);
+            cur_min = minimum(current_median);
             if cur_min < float('Inf'):
                 norm_minimum = max(norm_minimum,cur_min);
 

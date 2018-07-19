@@ -25,11 +25,11 @@ class Logger(object):
         self._recorder = Recorder(self);
         self._children =[];
 
-    def record(self, depth = 100, suffix = None):
+    def record(self, depth = 100, suffix = None, metadata={}):
         if depth>0:
             for child in self._children:
-                child.record(depth-1,suffix);
-        self.recorder.record(suffix);
+                child.record(depth-1,suffix, metadata);
+        self.recorder.record(suffix, metadata);
 
 
 

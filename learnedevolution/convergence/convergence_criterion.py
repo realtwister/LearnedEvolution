@@ -55,7 +55,7 @@ class ConvergenceCriterion(object):
     @property
     def reward_factor(self):
         if self.converged:
-            return (self.max_iter-self.iter);
+            return (self.max_iter-self.iter)+self.streak;
         return 0;
 
     @property

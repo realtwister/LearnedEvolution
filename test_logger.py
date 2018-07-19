@@ -34,7 +34,7 @@ if os.path.exists(logdir):
 
 # Convergence criteria
 convergence_criterion = ConvergenceCriterion(reward_per_step=0.5, gamma=0.02);
-time_convergence = TimeConvergence();
+time_convergence = TimeConvergence(120);
 
 convergence_criteria = [time_convergence];
 

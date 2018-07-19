@@ -30,8 +30,8 @@ class Rosenbrock(Problem, RandomGeneratable):
         a = 1. - x
         b = y - x*x
 
-        s = np.sum(a*a + b*b*100, axis=1);
-        return -np.log(s);
+        s = np.sum(a**2 + b**2*100, axis=1);
+        return -s;
 
     @property
     def optimum(self):

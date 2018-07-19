@@ -65,12 +65,16 @@ class MlpPolicy(object):
                     mean = tf.layers.dense(last_out, pdtype.param_shape()[0]//2, name='final',kernel_initializer=U.normc_initializer(0.01))
                     logstd = tf.get_variable(name="logstd", shape=[1, pdtype.param_shape()[0]//2], initializer=tf.zeros_initializer())+mean * 0.0
                 else:
+
                     flat = tf.layers.dense(last_out, pdtype.param_shape()[0], name='final',kernel_initializer=U.normc_initializer(0.01))
                     mean, logstd = tf.split(axis=len(flat.shape)-1, num_or_size_splits=2, value=flat)
             else:
                     mean = tf.layers.dense(last_out, ac_space.shape[0], name='mean',kernel_initializer=U.normc_initializer(0.01))
                     logstd = tf.ones([ac_space.shape[0]])*tf.layers.dense(last_out, 1, name='logstd',kernel_initializer=U.normc_initializer(0.01))
-            self.pd = DiagGaussianPd(mean, logstd)
+            logstd_offset = tf.get_variable("logstd_offset",initializer=tf.constant(0.), trainable=False);
+            logstd_placeholder = tf.placeholder(tf.float32, shape=());
+            self.add_std_offset = U.function([logstd_placeholder], [tf.assign(logstd_offset, tf.add(logstd_offset,logstd_placeholder))])
+            self.pd = DiagGaussianPd(mean, logstd_offset+logstd)
             stochastic = tf.placeholder(dtype=tf.bool, shape=(), name = "stochastic")
             ac = U.switch(stochastic, self.pd.sample(), self.pd.mode())
 

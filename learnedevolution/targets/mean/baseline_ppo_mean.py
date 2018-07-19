@@ -22,6 +22,7 @@ class BaselinePPOMean(MeanTarget):
         self._state = NormalizedState(population_size,dimension);
         self._convergence_criteria = convergence_criteria;
         self._non_converged = -1000;
+        self.learning = True;
 
     def _state_space(self, gym = False):
         if gym:
@@ -34,10 +35,10 @@ class BaselinePPOMean(MeanTarget):
         return dict(type='float', shape=(self.p['dimension']));
 
     def _init_agent(self, log_dir):
-        def policy_fn(name, ob_space, ac_space, summaries = False, should_act = True): #pylint: disable=W0613
+        def policy_fn(name, ob_space, ac_space, summaries = False, should_act = True):
             self._policy = MlpPolicy(name=name, ob_space=ob_space, ac_space=ac_space,hid_size=128, num_hid_layers=2, summaries= summaries, should_act= should_act);
             return self._policy;
-        batch = BatchProvider(epochs = 4, horizon = 256, reward_discount = 0.90);
+        batch = BatchProvider(epochs = 4, horizon = 256, reward_discount = 1);
         self._agent = PPO(None, policy_fn, batch,
             clip_param = 0.05,
             adam_epsilon = 1e-6,
@@ -72,8 +73,14 @@ class BaselinePPOMean(MeanTarget):
         self._state.reset();
 
     def _calculate(self, population, fitness):
-        self._observe(population, fitness);
-        action,_ = self._agent.act();
+        if self.learning:
+            self._observe(population, fitness);
+            action,_ = self._agent.act();
+        else:
+            self._current_reward = reward = self._calculate_reward(population, fitness);
+            self._current_state = state = self._calculate_state(population, fitness);
+            self._current_rewards += [reward];
+            action,_ = self._agent._policy.act(True, state);
         mean_difference = self._state.decode(action);
         self._target = self._mean + mean_difference;
         if np.any(np.isnan(self._target)):
@@ -138,16 +145,11 @@ class BaselinePPOMean(MeanTarget):
         self._covariance = covariance;
 
     def _terminating(self, population, fitness):
-        state = self._calculate_state(population, fitness);
         reward = 0;
-        mean_reward = np.mean(self._current_rewards);
+        mean_reward = np.percentile(self._current_rewards,90);
         for criterion in self._convergence_criteria:
             reward += criterion.reward_factor*mean_reward;
         self._current_reward += reward;
-        self._agent.observe(state, reward, True);
-    def _terminating_deterministic(self,population,fitness):
-        reward = 0;
-        mean_reward = np.percentile(self._current_rewards,75);
-        for criterion in self._convergence_criteria:
-            reward += criterion.reward_factor*mean_reward;
-        self._current_reward += reward;
+        if self.learning:
+            state = self._calculate_state(population, fitness);
+            self._agent.observe(state, reward, True);

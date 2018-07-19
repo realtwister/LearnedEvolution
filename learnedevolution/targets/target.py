@@ -57,7 +57,8 @@ class Target(object):
     def _terminating(self, population, evaluated_fitness):
         pass;
 
-    _terminating_deterministic=_terminating;
+    def _terminating_deterministic(self, population, evaluated_fitness):
+        self._terminating(population, evaluated_fitness);
 
     @method_event('terminating')
     def terminating(self, population, evaluated_fitness = None, deterministic=False):
