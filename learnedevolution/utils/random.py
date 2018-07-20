@@ -16,10 +16,13 @@ class RandomGenerator(object):
         if not isinstance(clss,collections.Iterable ):
             clss = [clss];
         for cls in clss:
-            assert issubclass(cls, RandomGeneratable);
+            assert hasattr(cls, 'random');
         self._classes = clss;
         self._kwargs = kwargs;
         self.seed();
+
+    def copy(self):
+        return self.__class__(self._classes,**self._kwargs);
 
     def seed(self, seed = None):
         self._random_state = np.random.RandomState(seed);
@@ -30,7 +33,7 @@ class RandomGenerator(object):
         return self._current;
 
     def append(self, cls):
-        assert issubclass(cls, RandomGeneratable);
+        assert hasattr(cls, 'random');
         self._classes.append(cls);
 
     def iter(self, n = 0):

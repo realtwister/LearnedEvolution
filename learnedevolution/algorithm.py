@@ -53,14 +53,18 @@ class Algorithm(object):
         self._iteration = 0;
 
     def _initial_mean(self):
-        d = self._random_state.standard_normal(self._dimension);
-        d = d/np.linalg.norm(d); #https://math.stackexchange.com/questions/446959/algorithm-to-generate-an-uniform-distribution-of-points-in-the-volume-of-an-hype?rq=1;
-        r = 20+self._random_state.rand()*80;
-        mean = r*d;
+        mean = np.zeros(self._dimension)
         return mean;
 
     def _initial_covariance(self):
         return np.eye(self._dimension);
+
+    def set_target_attr(self, attr, value):
+        for mean_target in self._mean_targets:
+            setattr(mean_target, attr, value);
+
+        for covariance_target in self._covariance_targets:
+            setattr(covariance_target, attr, value);
 
     @method_event('maximize')
     def maximize(self, fitness, maximum_iterations = None, deterministic=False):

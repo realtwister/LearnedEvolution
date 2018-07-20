@@ -1,0 +1,100 @@
+import os;
+import importlib.util;
+from tqdm import tqdm;
+
+
+class Benchmark:
+    def __init__(self, config_file, logdir):
+
+        # Initialize everything in config
+        config = self._config_is_valid(config_file);
+        self._p = self._check_parameters(config.parameters);
+        self._algorithm = config.initiate_algorithm();
+        self._train_suite = config.initiate_problem_generator();
+        loggers = config.initiate_logging(logdir);
+        self._logdir = logdir;
+        self._logger = dict(
+            algorithm = loggers[0],
+            problem = loggers[1]
+        )
+
+        self._seed();
+
+    @staticmethod
+    def _config_is_valid(config_file):
+        assert os.path.isfile(config_file);
+        spec = importlib.util.spec_from_file_location("config_file", config_file)
+        config_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(config_module)
+        assert hasattr(config_module, 'BenchmarkConfig');
+        return config_module.BenchmarkConfig();
+
+    @staticmethod
+    def _check_parameters(parameters):
+        necessary = [
+            'N_test','N_epoch','N_train',
+            'seed_test', 'seed_train'
+        ];
+        missing = [];
+        for n in necessary:
+            if n not in parameters:
+                missing +=[n];
+        if len(missing) >0:
+            raise ValueError("Missing parameters {} in config file".format(",".join(missing)));
+        return parameters;
+
+    def _seed(self):
+        self._test_suite = test_suite = self._train_suite.copy();
+        test_suite.seed(self._p['seed_test']);
+
+        self._train_suite.seed(self._p['seed_train']);
+        self._algorithm.seed(self._p['seed_train']);
+
+    def _reset_test(self):
+        self._test_suite.seed(self._p['seed_test']);
+
+    def train(self, steps):
+        self._algorithm.set_target_attr('learning', True)
+        for problem in tqdm(self._train_suite.iter(steps), total=steps, desc="Training", leave=False):
+            self._algorithm.maximize(problem.fitness)
+
+    def test(self, steps):
+        self._algorithm.set_target_attr('learning', False);
+        self._reset_test();
+        for i, problem in tqdm(enumerate(self._test_suite.iter(steps)), total=steps, desc="Testing", leave=False):
+            self._logger['algorithm'].record(suffix="BENCHMARK.deterministic."+str(i));
+            mean, covariance = self._algorithm.maximize(problem.fitness, deterministic=True);
+
+            self._logger['algorithm'].record(suffix="BENCHMARK.explorative."+str(i));
+            mean, covariance = self._algorithm.maximize(problem.fitness);
+
+    def run(self):
+        print("Logging to: {}".format(self._logdir))
+        self.test(self._p['N_test']);
+        for i in tqdm(range(self._p['N_epoch']), desc="Epochs", leave=False):
+            self.train(self._p['N_train']);
+            self.test(self._p['N_test']);
+
+    @property
+    def test_suite(self):
+        self._reset_test();
+        return self._test_suite;
+
+    @property
+    def train_suite(self):
+        return self._train_suite;
+
+
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    from scipy.optimize import fmin;
+    b = Benchmark("./config.py", "/tmp/thesis/automated_benchmark/1");
+    b.run();

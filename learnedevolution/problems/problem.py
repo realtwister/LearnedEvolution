@@ -23,6 +23,14 @@ class Problem(RandomGeneratable):
         raise NotImplementedError();
 
     @property
+    def dimension(self):
+        return self._dimension;
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
     def proto(self):
         proto = ProblemProto();
         proto.type = self._type;
@@ -36,3 +44,13 @@ class Problem(RandomGeneratable):
         res += " Type:\t\t {}\n".format(self._type);
         res += " Parameters:\t {}".format(self._params);
         return res;
+
+    def __eq__(self, other):
+        if self._type != other._type:
+            return False;
+        for key in self._params:
+            if key not in other._params:
+                return False;
+            if np.any(self._params[key] != other._params[key]):
+                return False;
+        return True;
