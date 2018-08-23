@@ -6,10 +6,16 @@ import numpy as np;
 from itertools import product;
 import fileinput;
 from shutil import copyfile
+from multiprocessing import Pool, Manager
+from progressbar import ProgressBar;
+import time;
+import itertools as it;
 
-VAR_REGEX = re.compile("<<VARIABLE:[a-zA-Z0-9_.,{}()\[\]\-]+>>");
-SPACE_REGEX = re.compile("{{[a-zA-Z0-9_.,()\[\]\-]+}}");
-SPEC_VAR_REGEX = lambda var: "<<VARIABLE:"+var+"(|{{[a-zA-Z0-9_.,{}()\[\]\-]+}})>>";
+from .benchmark import Benchmark;
+
+VAR_REGEX = re.compile("<<VARIABLE:[a-zA-Z0-9_.,{} ()\+\"\'\[\]\-]+>>");
+SPACE_REGEX = re.compile("{{[a-zA-Z0-9_., ()\"\'\[\]\+\-]+}}");
+SPEC_VAR_REGEX = lambda var: "<<VARIABLE:"+var+"(|{{[a-zA-Z0-9_., \"\'{}()\[\]\+\-]+}})>>";
 
 def confirm(question, should_confirm, before_fn = None):
     if not should_confirm:
@@ -87,11 +93,24 @@ def setup_run(template_file, run_dir, keys, values):
     config_file = os.path.join(run_dir, 'config.py');
     copyfile(template_file, config_file);
     fill_config(config_file, keys, values);
+    Benchmark._config_is_valid(config_file);
 
-def run_single(run_dir):
-    from .benchmark import Benchmark;
-    b = Benchmark(os.path.join(run_dir,'config.py'), run_dir);
-    b.run();
+def run_single(args):
+    (run_dir, q)=args;
+    import os;
+    from wurlitzer import pipes
+    from io import StringIO
+    import sys;
+
+    sys.stdout = open(os.path.join(run_dir,"stdout"), "a")
+    sys.stderr =  open(os.path.join(run_dir,"stderr"), "a")
+    try:
+        from .benchmark import Benchmark;
+        b = Benchmark(os.path.join(run_dir,'config.py'), run_dir, queue = q);
+        b.run();
+        b.close();
+    except Exception(e):
+        print(e);
 
 
 
@@ -102,23 +121,29 @@ def run_single(run_dir):
 def main():
     parser = argparse.ArgumentParser(prog="sweep")
     parser.add_argument('experiment_dir', metavar="SWEEP_DIR")
-    parser.add_argument('--config', dest="config", metavar="CONFIG_FILE", required= True);
+    parser.add_argument('--config', dest="config", metavar="CONFIG_FILE");
     parser.add_argument('-y', dest="should_confirm", action="store_false", default=True, help="Confirm all");
+    parser.add_argument('--workers', dest="workers",type=int, default = 1)
 
     args = parser.parse_args();
     if os.path.exists(args.experiment_dir):
-        parser.error("The experiment dir already exists.");
-    if not os.path.exists(args.config):
+        if not confirm("Are you sure you want to overwrite it?", args.should_confirm):
+            parser.error("The experiment dir already exists.");
+    if args.config is not None:
+        config = args.config;
+    else:
+        config = os.path.join(args.experiment_dir,'config.py');
+    if not os.path.exists(config):
         parser.error("Config not found.")
-    if not os.path.isfile(args.config):
+    if not os.path.isfile(config):
         parser.error("Config is not a file.")
 
-    variables = find_variables_in_file(args.config);
+    variables = find_variables_in_file(config);
 
     if len(variables) == 0:
         if not confirm("No variables found do you want to continue?", args.should_confirm):
             exit();
-        setup_run(args.config, args.experiment_dir,[],[]);
+        setup_run(config, args.experiment_dir,[],[]);
         run_single(args.experiment_dir);
         exit();
 
@@ -133,20 +158,41 @@ def main():
         print("Exiting...");
         exit();
 
-    os.makedirs(args.experiment_dir);
+    if not os.path.exists(args.experiment_dir):
+        os.makedirs(args.experiment_dir);
     log_path = os.path.join(args.experiment_dir, 'log');
 
     with open(log_path, 'w') as log_file:
-        log_file.write(', '.join(['dir']+keys)+"\n");
+        log_file.write(','.join(['dir']+keys)+"\n");
 
     print(("{:12} "+"{:20} "*len(keys)).format("run",*keys));
+    manager = Manager();
+    map_args =[];
     for i,combination in enumerate(combinations):
         current_dir = os.path.join(args.experiment_dir, str(i));
-        setup_run(args.config, current_dir, keys, combination);
+        setup_run(config, current_dir, keys, combination);
         with open(log_path, 'a') as log_file:
-            log_file.write(', '.join([str(i)]+[ str(v) for v in combination])+"\n");
-        print(("{:<12} "+"{:<20} "*len(keys)).format(i,*combination));
-        run_single(current_dir);
+            log_file.write(','.join([str(i)]+[ str(v) for v in combination])+"\n");
+        print(("{:<12} "+"{:<20} "*len(keys)).format(i,*[str(c) for c in combination]));
+        q = manager.Queue(1);
+        map_args.append((current_dir,q));
+    print("Running on {} processes...".format(args.workers));
+    with Pool(args.workers, maxtasksperchild=1) as p:
+        res = p.map_async(run_single, map_args);
+
+        bar = ProgressBar(max_value=len_combinations);
+        timers =[0]*len_combinations;
+        last = 0;
+        while not res.ready():
+            for i, (_,q) in enumerate(map_args):
+                if not q.empty():
+                    timers[i] = q.get();
+            if abs(last - np.sum(timers))>1e-2:
+                bar.update(np.sum(timers));
+                last = np.sum(timers);
+            time.sleep(1);
+
+
 
 if __name__ == "__main__":
     main();

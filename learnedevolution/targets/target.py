@@ -70,6 +70,9 @@ class Target(object):
         else:
             self._terminating(population, evaluated_fitness);
 
+    def close(self):
+        pass;
+
     @property
     def proto(self):
         #TODO: should implement this;

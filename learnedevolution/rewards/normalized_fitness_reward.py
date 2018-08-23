@@ -39,7 +39,7 @@ class InitialMinimum:
             self.minimum = fitness;
         return self.minimum;
 
-class LaggingMaximum:
+class DelayedMaximum:
     def __init__(self, lag=1):
         self.queue = deque([],lag);
     def reset(self):
@@ -54,12 +54,6 @@ class LaggingMaximum:
         self.queue.append(fitness);
 
         return self.maximum;
-
-
-
-
-
-
 
 class NormalizedFitnessReward(Reward):
     def __init__(self, minima, maxima):
@@ -77,12 +71,12 @@ class NormalizedFitnessReward(Reward):
 
         current_min = np.min(fitness);
         current_max = np.max(fitness);
-        current_median = np.median(fitness);
+        current_mean = np.mean(fitness);
 
         norm_minimum = -float('Inf');
         norm_maximum = -float('Inf');
         for minimum in self.minima:
-            cur_min = minimum(current_median);
+            cur_min = minimum(current_min);
             if cur_min < float('Inf'):
                 norm_minimum = max(norm_minimum,cur_min);
 
@@ -93,5 +87,7 @@ class NormalizedFitnessReward(Reward):
         self._minimum = norm_minimum;
         if norm_minimum<norm_maximum:
             #TODO: proper normalisation between -1 and 1
-            return (1+np.tanh((current_median-norm_minimum)/(norm_maximum-norm_minimum)-1))/2;
+            reward = (current_mean - norm_minimum)/(norm_maximum-norm_minimum);
+            #return reward;
+            return np.clip(10*reward**3+reward,-100,100)/100;
         return 0;

@@ -35,9 +35,8 @@ class TranslatedProblem(Problem, RandomGeneratable):
             spread = [spread]**dimension;
         assert len(spread) == dimension;
         spread = np.array(spread);
-        translation = random_state.rand(dimension)*spread-0.5*spread;
-
-        return TranslatedProblem(problem, translation);
+        translation = random_state.rand(dimension)*spread**2;
+        return TranslatedProblem(problem, np.sqrt(translation));
 
     def fitness(self, xs):
         super().fitness(xs);

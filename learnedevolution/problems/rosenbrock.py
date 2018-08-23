@@ -24,15 +24,15 @@ class Rosenbrock(Problem, RandomGeneratable):
 
     def fitness(self, xs):
         super().fitness(xs);
-        xs =xs/100;
-        x = xs[:,:-1]
-        y = xs[:,1:]
+        xs = xs/100+np.array([1,1]);
+        x = xs[...,:-1]
+        y = xs[...,1:]
         a = 1. - x
         b = y - x*x
 
-        s = np.sum(a**2 + b**2*100, axis=1);
+        s = np.sum(a**2 + b**2*100, axis=-1);
         return -s;
 
     @property
     def optimum(self):
-        return np.array([-.22,0.735]);
+        return np.array([0,0]);

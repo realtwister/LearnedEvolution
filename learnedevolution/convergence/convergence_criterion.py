@@ -6,19 +6,24 @@ class ConvergenceCriterion(object):
         max_streak = 5,
         start_epsilon = 1,
         gamma = 0.01,
-        reward_per_step =1):
+        reward_per_step =1,
+        wait = 4000):
         self.max_iter = max_iter;
         self.max_streak = max_streak;
         self.epsilon = start_epsilon;
         self.gamma = gamma;
         self.reward_per_step = reward_per_step;
         self.convergence_ratio = 0;
+        self._wait = wait;
 
     def reset(self, mean, covariance):
+        self._wait -= 1;
         self.converged = False;
         self.max = -float('Inf');
         self.streak = 0;
         self.iter = 0;
+        if self._wait>0:
+            self.convergence_ratio = 0.;
         if self.convergence_ratio > 0.25:
             self.epsilon *= 3/4;
             self.convergence_ratio = 0;
@@ -38,15 +43,16 @@ class ConvergenceCriterion(object):
         max_fitness = np.max(fitness);
 
         # Check if converging
-        if max_fitness > self.max:
-            self.max = max_fitness;
-        if np.abs(self.max-mean_fitness) < self.epsilon:
-            self.streak += 1;
-            if self.streak >= self.max_streak:
-                self.convergence_ratio += self.gamma*(1-self.convergence_ratio);
-                return True;
-        else:
-            self.streak = 0;
+        if self._wait<0:
+            if max_fitness > self.max:
+                self.max = max_fitness;
+            if np.abs(self.max-mean_fitness) < self.epsilon:
+                self.streak += 1;
+                if self.streak >= self.max_streak:
+                    self.convergence_ratio += self.gamma*(1-self.convergence_ratio);
+                    return True;
+            else:
+                self.streak = 0;
         if self.iter >= self.max_iter:
             self.convergence_ratio -= self.gamma*(1+self.convergence_ratio);
             return True;

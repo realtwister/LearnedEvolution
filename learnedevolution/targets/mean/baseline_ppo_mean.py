@@ -5,10 +5,8 @@ from baselines.ppo1 import PPO, BatchProvider;
 from ...policy.mlp_policy import MlpPolicy
 
 from .mean_target import MeanTarget;
-from ...rewards.differential_reward import DifferentialReward;
-from ...rewards.divergence_penalty import DivergencePenalty;
-from ...rewards.normalized_fitness_reward import NormalizedFitnessReward, DecayingMinimum, WindowMinimum, InitialMinimum, LaggingMaximum;
 from ...states.normalized_state import NormalizedState;
+from ...states.new_normalized_state import NewNormalizedState;
 
 class BaselinePPOMean(MeanTarget):
     def __init__(self, dimension, population_size, rewards, convergence_criteria, logdir = None):
@@ -38,11 +36,12 @@ class BaselinePPOMean(MeanTarget):
         def policy_fn(name, ob_space, ac_space, summaries = False, should_act = True):
             self._policy = MlpPolicy(name=name, ob_space=ob_space, ac_space=ac_space,hid_size=128, num_hid_layers=2, summaries= summaries, should_act= should_act);
             return self._policy;
-        batch = BatchProvider(epochs = 4, horizon = 256, reward_discount = 1);
+        batch = BatchProvider(epochs = 4, horizon = 256, reward_discount = 0.95);
         self._agent = PPO(None, policy_fn, batch,
-            clip_param = 0.05,
+            clip_param = 0.02,
             adam_epsilon = 1e-6,
-            entropy_param = -0.005,
+            entropy_param = 0.,
+            value_param=0.1,
             observation_space = self._state_space(True),
             action_space = self._action_space(True),
             log_dir = log_dir);
@@ -148,8 +147,11 @@ class BaselinePPOMean(MeanTarget):
         reward = 0;
         mean_reward = np.percentile(self._current_rewards,90);
         for criterion in self._convergence_criteria:
-            reward += criterion.reward_factor*mean_reward;
+            reward += criterion.reward;
         self._current_reward += reward;
         if self.learning:
             state = self._calculate_state(population, fitness);
             self._agent.observe(state, reward, True);
+
+    def close(self):
+        self._agent.close();

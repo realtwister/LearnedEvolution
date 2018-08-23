@@ -146,6 +146,9 @@ class Algorithm(object):
         self._mean_fitness = np.mean(self._evaluated_fitness);
         self._call_on_targets('terminating', [population, evaluated_fitness,deterministic]);
 
+    def close(self):
+        self._call_on_targets('close');
+
     @property
     def current_step(self):
         return self._steps;

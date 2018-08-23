@@ -4,7 +4,7 @@ from tqdm import tqdm;
 
 
 class Benchmark:
-    def __init__(self, config_file, logdir):
+    def __init__(self, config_file, logdir, queue=None, progress=False):
 
         # Initialize everything in config
         config = self._config_is_valid(config_file);
@@ -17,6 +17,8 @@ class Benchmark:
             algorithm = loggers[0],
             problem = loggers[1]
         )
+        self._queue = queue;
+        self._progress = progress;
 
         self._seed();
 
@@ -43,6 +45,13 @@ class Benchmark:
             raise ValueError("Missing parameters {} in config file".format(",".join(missing)));
         return parameters;
 
+    def _pack_iter(self, iter, **kwargs):
+        if self._progress:
+            return tqdm(iter, **kwargs);
+        else:
+            return iter;
+
+
     def _seed(self):
         self._test_suite = test_suite = self._train_suite.copy();
         test_suite.seed(self._p['seed_test']);
@@ -55,25 +64,32 @@ class Benchmark:
 
     def train(self, steps):
         self._algorithm.set_target_attr('learning', True)
-        for problem in tqdm(self._train_suite.iter(steps), total=steps, desc="Training", leave=False):
+        for problem in self._pack_iter(self._train_suite.iter(steps), total=steps, desc="Training", leave=False):
             self._algorithm.maximize(problem.fitness)
 
     def test(self, steps):
         self._algorithm.set_target_attr('learning', False);
         self._reset_test();
-        for i, problem in tqdm(enumerate(self._test_suite.iter(steps)), total=steps, desc="Testing", leave=False):
+        for i, problem in self._pack_iter(enumerate(self._test_suite.iter(steps)), total=steps, desc="Testing", leave=False):
+            self._algorithm._steps -=1;
             self._logger['algorithm'].record(suffix="BENCHMARK.deterministic."+str(i));
             mean, covariance = self._algorithm.maximize(problem.fitness, deterministic=True);
 
+            self._algorithm._steps -=1;
             self._logger['algorithm'].record(suffix="BENCHMARK.explorative."+str(i));
             mean, covariance = self._algorithm.maximize(problem.fitness);
 
     def run(self):
         print("Logging to: {}".format(self._logdir))
         self.test(self._p['N_test']);
-        for i in tqdm(range(self._p['N_epoch']), desc="Epochs", leave=False):
+        for i in self._pack_iter(range(self._p['N_epoch']), desc="Epochs", leave=False):
             self.train(self._p['N_train']);
             self.test(self._p['N_test']);
+            if self._queue is not None:
+                self._queue.put(float(i+1)/self._p['N_epoch']);
+
+    def close(self):
+        self._algorithm.close();
 
     @property
     def test_suite(self):
@@ -96,5 +112,5 @@ class Benchmark:
 
 if __name__ == "__main__":
     from scipy.optimize import fmin;
-    b = Benchmark("./config.py", "/tmp/thesis/automated_benchmark/1");
+    b = Benchmark("./config.py", "/tmp/thesis/single_benchmarks/norm_reward_24", progress=True);
     b.run();

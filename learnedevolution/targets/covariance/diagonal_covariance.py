@@ -25,7 +25,7 @@ class DiagonalCovariance(CovarianceTarget):
         elif mean_diff > self.threshold[1]*np.sqrt(self.variance):
             self.variance /= self.gamma;
 
-        self.variance = np.clip(self.variance, 1e-5, 100)
+        self.variance = np.clip(self.variance, 1e-8, 100)
 
     def _calculate(self, population, evaluated_fitness):
         self._target = self.variance*np.eye(population.shape[1]);

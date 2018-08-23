@@ -1,26 +1,25 @@
 import numpy as np;
-from scipy.stats import special_ortho_group
 
 from .problem import Problem;
 from ..utils.random import RandomGeneratable, RandomGenerator;
 
-class RotateProblem:
+class FitnessScaleProblem:
     def __init__(self, problem_cls):
         self._problem = problem_cls;
 
     def random(self, random_state, dimension,**kwargs):
-        return RotatedProblem.random(random_state, dimension, self._problem, **kwargs)
+        return FitnessScaledProblem.random(random_state, dimension, self._problem, **kwargs)
 
-class RotatedProblem(Problem, RandomGeneratable):
+class FitnessScaledProblem(Problem, RandomGeneratable):
 
-    def __init__(self, problem, rotation):
+    def __init__(self, problem, scale):
         assert isinstance(problem, Problem);
 
         super().__init__(problem.dimension);
         self._problem = problem;
-        self._type = "Rotated_"+problem.type;
+        self._type = "Scaled_"+problem.type;
         self._params = dict(
-            rotation = rotation,
+            scale = scale,
             problem = problem
         );
 
@@ -28,16 +27,14 @@ class RotatedProblem(Problem, RandomGeneratable):
     def random(random_state, dimension, problem_cls, **kwargs):
         problem = problem_cls.random(random_state, dimension, **kwargs);
 
-        rotation = special_ortho_group.rvs(dimension, random_state = random_state);
+        scale = 100*random_state.rand();
 
-        return RotatedProblem(problem, rotation);
+        return FitnessScaledProblem(problem, scale);
 
     def fitness(self, xs):
         super().fitness(xs);
-        xs_rotated = xs@self._params['rotation'];
-        return self._params['problem'].fitness(xs_rotated);
+        return self._params['scale'] * self._params['problem'].fitness(xs);
 
     @property
     def optimum(self):
-        problem_opt = self._params['problem'].optimum;
-        return problem_opt@self._params['rotation'];
+        return self._params['problem'].optimum;
