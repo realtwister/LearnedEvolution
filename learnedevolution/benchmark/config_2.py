@@ -4,7 +4,7 @@ from learnedevolution.convergence.time_convergence import TimeConvergence;
 from learnedevolution.convergence.convergence_criterion import ConvergenceCriterion;
 from learnedevolution.convergence.combined_reward import CombinedDifferentialReward;
 
-from learnedevolution.targets.mean import BaselinePPOMean, MaximumLikelihoodMean;
+from learnedevolution.targets.mean import BaselinePPOMean;
 from learnedevolution.rewards.differential_reward import DifferentialReward;
 from learnedevolution.rewards.trace_differential_reward import TraceDifferentialReward;
 from learnedevolution.rewards.divergence_penalty import DivergencePenalty;
@@ -37,7 +37,7 @@ class BenchmarkConfig:
         if False:
             self._convergence = convergence = ConvergenceCriterion(gamma=0.02, max_streak=10);
         else:
-            self._convergence = convergence = TimeConvergence(100);
+            self._convergence = convergence = TimeConvergence();
 
         #self._convergence = convergence = CombinedDifferentialReward();
 
@@ -70,8 +70,7 @@ class BenchmarkConfig:
             convergence_criteria=[convergence]);
 
         mean_targets = {
-            ppo_mean:1,
-            MaximumLikelihoodMean():0,
+            ppo_mean:1
         }
 
         # initiate covariance target
@@ -98,9 +97,8 @@ class BenchmarkConfig:
         problems = [
             RotateProblem(TranslateProblem(Sphere)),
         ];
-        self._train_suite = train_suite = ProblemSuite(problems, dimension= self.parameters['dimension']);
-        self._test_suite = test_suite = train_suite.copy()
-        return train_suite, test_suite;
+        self._problem_suite = suite = ProblemSuite(problems, dimension= self.parameters['dimension']);
+        return suite;
 
     def initiate_logging(self, logdir):
         algo = AlgorithmLogger(self._algorithm, logdir);
@@ -109,8 +107,9 @@ class BenchmarkConfig:
         mean = algo.create_child(self._ppo_mean);
         mean.recorder.watch('_current_reward','reward');
 
-        gen_log = GeneratorLogger(self._test_suite, logdir);
+        gen_log = GeneratorLogger(self._problem_suite, logdir);
         return algo, gen_log
+
 
 if __name__=="__main__":
     config = BenchmarkConfig();

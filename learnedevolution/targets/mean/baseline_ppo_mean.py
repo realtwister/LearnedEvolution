@@ -7,8 +7,10 @@ from ...policy.mlp_policy import MlpPolicy
 from .mean_target import MeanTarget;
 from ...states.normalized_state import NormalizedState;
 from ...states.new_normalized_state import NewNormalizedState;
+from ...states.benchmark_state import BenchmarkState;
 
 class BaselinePPOMean(MeanTarget):
+    _API = 2.;
     def __init__(self, dimension, population_size, rewards, convergence_criteria, logdir = None):
         super().__init__();
         self.p['population_size'] = population_size;
@@ -36,12 +38,12 @@ class BaselinePPOMean(MeanTarget):
         def policy_fn(name, ob_space, ac_space, summaries = False, should_act = True):
             self._policy = MlpPolicy(name=name, ob_space=ob_space, ac_space=ac_space,hid_size=128, num_hid_layers=2, summaries= summaries, should_act= should_act);
             return self._policy;
-        batch = BatchProvider(epochs = 4, horizon = 256, reward_discount = 0.95);
+        batch = BatchProvider(epochs = 4, horizon = 100, reward_discount = 0.95);
         self._agent = PPO(None, policy_fn, batch,
-            clip_param = 0.02,
-            adam_epsilon = 1e-6,
-            entropy_param = 0.,
-            value_param=0.1,
+            clip_param = 0.03,
+            adam_epsilon = 1e-5,
+            entropy_param = 0.05,
+            value_param=1.,
             observation_space = self._state_space(True),
             action_space = self._action_space(True),
             log_dir = log_dir);
@@ -71,17 +73,16 @@ class BaselinePPOMean(MeanTarget):
         self._covariance = initial_covariance;
         self._state.reset();
 
-    def _calculate(self, population, fitness):
+    def _calculate(self, population):
         if self.learning:
-            self._observe(population, fitness);
+            self._observe(population);
             action,_ = self._agent.act();
         else:
-            self._current_reward = reward = self._calculate_reward(population, fitness);
-            self._current_state = state = self._calculate_state(population, fitness);
+            self._current_reward = reward = self._calculate_reward(population);
+            self._current_state = state = self._state.encode(population);
             self._current_rewards += [reward];
             action,_ = self._agent._policy.act(True, state);
-        mean_difference = self._state.decode(action);
-        self._target = self._mean + mean_difference;
+        self._target = self._state.decode(action);
         if np.any(np.isnan(self._target)):
             print(self._target);
             raise Exception("mean is nan");
@@ -92,21 +93,20 @@ class BaselinePPOMean(MeanTarget):
 
         return self._target;
 
-    def _calculate_deterministic(self,population, fitness):
-        self._current_reward = reward = self._calculate_reward(population, fitness);
-        self._current_state = state = self._calculate_state(population, fitness);
+    def _calculate_deterministic(self,population):
+        self._current_reward = reward = self._calculate_reward(population);
+        self._current_state = state = self._state.encode(population);
         self._current_rewards += [reward];
         action,_ = self._agent._policy.act(False, state);
-        mean_difference = self._state.decode(action);
-        self._target = self._mean + mean_difference;
+        self._target = self._state.decode(action);
         self._step +=1;
         return self._target;
 
 
 
-    def _observe(self, population, fitness):
-        self._current_reward = reward = self._calculate_reward(population, fitness);
-        self._current_state = state = self._calculate_state(population, fitness);
+    def _observe(self, population):
+        self._current_reward = reward = self._calculate_reward(population);
+        self._current_state = state = self._state.encode(population);
         self._current_rewards += [reward];
 
         if self._should_observe:
@@ -115,14 +115,14 @@ class BaselinePPOMean(MeanTarget):
             self._agent.reset(state);
             self._should_observe = True;
 
-    def _calculate_reward(self, population, fitness):
+    def _calculate_reward(self, population):
         reward = 0;
         for reward_fn,w in self._rewards.items():
-            reward += w * reward_fn(population ,fitness);
+            reward += w * reward_fn(population.population, population.fitness);
         return reward;
 
-    def _calculate_state(self, population, fitness):
-        return self._state.encode(population, fitness, self._mean, self._covariance);
+    def _calculate_state(self, population):
+        return self._state.encode(population);
         norm_factor = np.sqrt(np.linalg.eig(self._covariance)[0][0]);
         state = (population-self._mean)/norm_factor;
         norm_fitness = (fitness- np.mean(fitness))/np.std(fitness);
@@ -143,14 +143,14 @@ class BaselinePPOMean(MeanTarget):
     def _update_covariance(self, covariance):
         self._covariance = covariance;
 
-    def _terminating(self, population, fitness):
+    def _terminating(self, population):
         reward = 0;
         mean_reward = np.percentile(self._current_rewards,90);
         for criterion in self._convergence_criteria:
             reward += criterion.reward;
         self._current_reward += reward;
         if self.learning:
-            state = self._calculate_state(population, fitness);
+            state = self._calculate_state(population);
             self._agent.observe(state, reward, True);
 
     def close(self):

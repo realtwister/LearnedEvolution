@@ -3,6 +3,7 @@ import numpy as np;
 from ..utils.signals import method_event;
 
 class Target(object):
+    _API = 1;
     def __init__(self):
         self.seed(None);
         self._params = dict();
@@ -31,14 +32,14 @@ class Target(object):
         return self._calculate(population, evaluated_fitness);
 
     @method_event('call')
-    def __call__(self, population, evaluated_fitness = None, deterministic=False):
+    def __call__(self, population, deterministic=False):
         calculate = self._calculate;
         if deterministic:
             calculate = self._calculate_deterministic;
-        if evaluated_fitness is None:
-            return calculate(population[:,:-1], population[:,-1]);
+        if self._API >= 2.:
+            return calculate(population);
         else:
-            return calculate(population, evaluated_fitness);
+            return calculate(population.population, population.fitness);
 
     def _update_covariance(self, covariance):
         pass;
@@ -57,18 +58,21 @@ class Target(object):
     def _terminating(self, population, evaluated_fitness):
         pass;
 
-    def _terminating_deterministic(self, population, evaluated_fitness):
+    def _terminating_deterministic(self, population, evaluated_fitness= None):
+        if evaluated_fitness is None:
+            return self._terminating(population);
         self._terminating(population, evaluated_fitness);
 
     @method_event('terminating')
-    def terminating(self, population, evaluated_fitness = None, deterministic=False):
+    def terminating(self, population, deterministic=False):
         if deterministic:
-            self._terminating_deterministic(population, evaluated_fitness);
-            return;
-        if evaluated_fitness is None:
-            self._terminating(population[:,:-1], population[:,-1]);
+            calculate = self._terminating_deterministic
         else:
-            self._terminating(population, evaluated_fitness);
+            calculate = self._terminating;
+        if self._API >= 2.:
+            return calculate(population);
+        else:
+            return calculate(population.population, population.fitness);
 
     def close(self):
         pass;

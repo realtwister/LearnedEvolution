@@ -9,12 +9,12 @@ class State(object):
     def reset(self):
         self._reset();
 
-    def _encode(self, population, fitness, mean, covariance):
+    def _encode(self, population):
         raise NotImplementedError;
 
     method_event('encode')
-    def encode(self, population, fitness, mean, covariance):
-        return self._encode(population,fitness, mean, covariance);
+    def encode(self, population):
+        return self._encode(population);
 
     def _decode(self, action):
         return action;

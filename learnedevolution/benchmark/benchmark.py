@@ -10,7 +10,7 @@ class Benchmark:
         config = self._config_is_valid(config_file);
         self._p = self._check_parameters(config.parameters);
         self._algorithm = config.initiate_algorithm();
-        self._train_suite = config.initiate_problem_generator();
+        self._train_suite, self._test_suite = config.initiate_problem_generator();
         loggers = config.initiate_logging(logdir);
         self._logdir = logdir;
         self._logger = dict(
@@ -53,8 +53,7 @@ class Benchmark:
 
 
     def _seed(self):
-        self._test_suite = test_suite = self._train_suite.copy();
-        test_suite.seed(self._p['seed_test']);
+        self._test_suite.seed(self._p['seed_test']);
 
         self._train_suite.seed(self._p['seed_train']);
         self._algorithm.seed(self._p['seed_train']);
@@ -71,6 +70,8 @@ class Benchmark:
         self._algorithm.set_target_attr('learning', False);
         self._reset_test();
         for i, problem in self._pack_iter(enumerate(self._test_suite.iter(steps)), total=steps, desc="Testing", leave=False):
+            if self._algorithm._steps< 2:
+                self._logger['problem'].add_current('problem', i);
             self._algorithm._steps -=1;
             self._logger['algorithm'].record(suffix="BENCHMARK.deterministic."+str(i));
             mean, covariance = self._algorithm.maximize(problem.fitness, deterministic=True);
@@ -111,6 +112,5 @@ class Benchmark:
 
 
 if __name__ == "__main__":
-    from scipy.optimize import fmin;
-    b = Benchmark("./config.py", "/tmp/thesis/single_benchmarks/norm_reward_24", progress=True);
+    b = Benchmark("./config.py", "/tmp/thesis/single_benchmarks/0", progress=True);
     b.run();

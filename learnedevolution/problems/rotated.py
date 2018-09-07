@@ -40,4 +40,4 @@ class RotatedProblem(Problem, RandomGeneratable):
     @property
     def optimum(self):
         problem_opt = self._params['problem'].optimum;
-        return problem_opt@self._params['rotation'];
+        return problem_opt@self._params['rotation'].T;

@@ -35,8 +35,12 @@ class Problem(RandomGeneratable):
         proto = ProblemProto();
         proto.type = self._type;
         proto.dimension = self._dimension;
-        for key,value in self._params.items():
-            proto.params.add(key=key, value = value);
+        # for key,value in self._params.items():
+        #     if key == 'problem':
+        #         value = value.proto();
+        #     proto.params.add(key=key, value = value);
+
+        proto.params.add(key='optimum', value = self.optimum);
         return proto;
 
     def __str__(self):

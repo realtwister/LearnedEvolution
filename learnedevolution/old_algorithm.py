@@ -82,16 +82,18 @@ class Algorithm(object):
     @method_event('step')
     def _step(self, fitness, deterministic=False):
         # Sample new population
-        population = self._generate_population(fitness);
+        population = self._sample();
+        # Evaluate fitness of population
+        self._evaluated_fitness = evaluated_fitness = fitness(population);
 
         # Calculate new mean
-        mean = self._calculate_mean(population, deterministic);
+        mean = self._calculate_mean(population, evaluated_fitness, deterministic);
 
         #Calculate new covariance
-        covariance = self._calculate_covariance(population, deterministic);
+        covariance = self._calculate_covariance(population, evaluated_fitness, deterministic);
 
         self._iteration += 1;
-        if self._is_converged(population.fitness):
+        if self._is_converged(evaluated_fitness):
             self._terminate(fitness,deterministic);
             return True;
         return False;
@@ -99,30 +101,27 @@ class Algorithm(object):
 
 
 
-    @method_event('generate_population')
-    def _generate_population(self, fitness):
-        population = Population(self._mean, self._covariance, self._population_size, fitness);
-        self._population = population.population;
-        self._evaluated_fitness = population.fitness;
-        return population;
+    @method_event('sample')
+    def _sample(self):
+        self._population = self._random_state.multivariate_normal(self._mean,
+            self._covariance, self._population_size);
+        return self._population;
 
     @method_event('calculate_mean')
-    def _calculate_mean(self, population, deterministic):
+    def _calculate_mean(self, population, evaluated_fitness,deterministic):
         mean = np.zeros(self._dimension);
         for mean_target, w in self._mean_targets.items():
-            mean += w * mean_target(population, deterministic);
+            mean += w * mean_target(population, evaluated_fitness, deterministic);
         self._call_on_targets('update_mean', [mean])
-        self._old_mean = self._mean;
         self._mean = mean;
         return mean;
 
     @method_event('calculate_covariance')
-    def _calculate_covariance(self, population, deterministic):
+    def _calculate_covariance(self, population, evaluated_fitness,deterministic):
         covariance = np.zeros(shape=(self._dimension, self._dimension));
         for target, w in self._covariance_targets.items():
-            covariance += w * target(population,deterministic);
+            covariance += w * target(population, evaluated_fitness,deterministic);
         self._call_on_targets('update_covariance', [covariance])
-        self._old_covariance = self._covariance
         self._covariance = covariance
         return covariance;
 
@@ -144,9 +143,10 @@ class Algorithm(object):
 
     @method_event('terminate')
     def _terminate(self, fitness, deterministic):
-        population = self._generate_population(fitness);
-        self._mean_fitness = np.mean(population.fitness);
-        self._call_on_targets('terminating', [population,deterministic]);
+        population = self._sample();
+        self._evaluated_fitness = evaluated_fitness = fitness(population);
+        self._mean_fitness = np.mean(self._evaluated_fitness);
+        self._call_on_targets('terminating', [population, evaluated_fitness,deterministic]);
 
     def close(self):
         self._call_on_targets('close');

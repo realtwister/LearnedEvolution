@@ -8,41 +8,43 @@ class NewNormalizedState(State):
 
     def _reset(self):
         self._prev_population = None;
-        self._prev_fitness = None;
 
-    def normalize_population(self, population, mean, covariance):
-        translated = population - mean;
-        self.population_scale_factor = np.sqrt(np.max(np.linalg.eig(covariance)[0]));
-        normalized = translated/self.population_scale_factor;
+    def normalize_fitness(self, population, reference = None):
+        if reference is None:
+            reference = population;
+        translated = population.fitness-np.mean(reference.fitness);
+        normalized = translated/np.std(reference.fitness - np.mean(reference.fitness));
         return normalized;
 
-    def normalize_fitness(self, fitness, basis=None):
-        if basis is None:
-            basis = fitness;
-        translated = fitness-np.mean(basis);
-        normalized = translated/np.std(basis);
-        return normalized;
-
-    def _encode(self, population, fitness, mean, covariance):
-        normalized_population = self.normalize_population(population, mean, covariance);
-        normalized_fitness = self.normalize_fitness(fitness);
-        state = np.append(normalized_population, normalized_fitness[:, None], axis=1);
-        state = state[fitness.argsort(),:].flatten();
-        if self._prev_population is not None:
-            normalized_previous_population = self.normalize_population(self._prev_population, mean, covariance);
-            normalized_previous_fitness = self.normalize_fitness(self._prev_fitness, fitness);
-            prev_state = np.append(normalized_previous_population, normalized_previous_fitness[:, None], axis=1);
-            prev_state = prev_state[self._prev_fitness.argsort(),:].flatten();
+    def create_single_state(self, population= None, reference = None):
+        if population is None:
+            return np.zeros([self.population_size,self.dimension+1])
+        if reference is None:
+            normalized_population = population.raw_population;
+            reference = population;
         else:
-            prev_state = np.zeros((self.population_size*(self.dimension+1)))
-        if np.any(np.isnan(state)):
+            normalized_population = reference.invert(population);
+        normalized_fitness = self.normalize_fitness(population, reference);
+        state = np.append(normalized_population, normalized_fitness[:, None], axis=1);
+        state = state[population.fitness.argsort()];
+        return state;
+
+    def _encode(self, population):
+        current_state = self.create_single_state(population)
+        #prev_state = self.create_single_state(self._prev_population,population)
+        total_state = np.stack([current_state]);
+        if np.any(np.isnan(total_state)):
             print("state is NaN");
-        if np.any(np.isinf(state)):
+        if np.any(np.isinf(total_state)):
             print("state is Inf");
-        total_state = np.stack([state, prev_state]);
         self._prev_population = population;
-        self._prev_fitness = fitness;
         return total_state.flatten();
 
     def _decode(self, action):
-        return action*self.population_scale_factor;
+        if self._prev_population is None:
+            return action;
+        dx = self._prev_population.morph(action);
+        n = np.linalg.norm(dx);
+        if n > 1e2:
+            dx *= 1e2/n
+        return dx;
