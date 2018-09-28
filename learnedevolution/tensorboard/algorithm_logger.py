@@ -10,7 +10,8 @@ class AlgorithmLogger(Logger):
         self.init_recorder();
 
     def init_recorder(self):
-        self.recorder.watch('_population','population');
-        self.recorder.watch('_old_mean','mean');
-        self.recorder.watch('_old_covariance','covariance');
-        self.recorder.watch('_evaluated_fitness','fitness');
+        self.recorder.watch('_population_obj', 'population_obj')
+        #self.recorder.watch('_population','population');
+        #self.recorder.watch('_old_mean','mean');
+        #self.recorder.watch('_old_covariance','covariance');
+        #self.recorder.watch('_evaluated_fitness','fitness');

@@ -4,3 +4,6 @@ from .adhoc_covariance import AdhocCovariance;
 from .diagonal_covariance import DiagonalCovariance;
 from .adaptive_covariance import AdaptiveCovariance;
 from .spherical_covariance import SphericalCovariance;
+from .adaptive_covariance_select import AdaptiveCovarianceSelect;
+from .adaptive_covariance_new import AdaptiveCovarianceNew;
+from .adaptive_covariance_eig import AdaptiveCovarianceEig;

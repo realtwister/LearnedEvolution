@@ -3,13 +3,14 @@ import numpy as np;
 from .reward import Reward;
 
 class DifferentialReward(Reward):
-    def _reset(self):
+    def _reset(self, epsilon = 1e-20):
         self._step = -1;
         self._fitness_diff = 0;
         self._mean_fitness = 0;
         self._prev_fitness_diff = 1;
         self._prev_mean_fitness = 0;
         self._max=-float('Inf');
+        self.epsilon = epsilon;
 
     def __call__(self,population,  fitness):
         self._step += 1;
@@ -17,7 +18,8 @@ class DifferentialReward(Reward):
             self._max= np.max(fitness);
         self._prev_mean_fitness = self._mean_fitness;
         self._mean_fitness = np.mean(fitness);
-        reward = (self._mean_fitness-self._prev_mean_fitness)/(self._max-self._mean_fitness) if self._step > 1 else 0;
+        factor =max(self._max-self._mean_fitness, self.epsilon)
+        reward = (self._mean_fitness-self._prev_mean_fitness)/factor if self._step > 1 else 0;
         return reward;
         self._fitness_diff = self._mean_fitness-self._prev_mean_fitness;
 

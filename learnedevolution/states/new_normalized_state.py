@@ -2,9 +2,10 @@ import numpy as np;
 from .state import State;
 
 class NewNormalizedState(State):
-    def __init__(self, population_size, dimension):
+    def __init__(self, population_size, dimension, epsilon = 1e-20):
         self.population_size = population_size;
         self.dimension = dimension;
+        self.epsilon = epsilon;
 
     def _reset(self):
         self._prev_population = None;
@@ -13,7 +14,8 @@ class NewNormalizedState(State):
         if reference is None:
             reference = population;
         translated = population.fitness-np.mean(reference.fitness);
-        normalized = translated/np.std(reference.fitness - np.mean(reference.fitness));
+        factor =max(np.std(reference.fitness), self.epsilon);
+        normalized = translated/factor;
         return normalized;
 
     def create_single_state(self, population= None, reference = None):
@@ -31,8 +33,8 @@ class NewNormalizedState(State):
 
     def _encode(self, population):
         current_state = self.create_single_state(population)
-        #prev_state = self.create_single_state(self._prev_population,population)
-        total_state = np.stack([current_state]);
+        prev_state = self.create_single_state(self._prev_population,population)
+        total_state = np.stack([current_state, prev_state]);
         if np.any(np.isnan(total_state)):
             print("state is NaN");
         if np.any(np.isinf(total_state)):
@@ -47,4 +49,7 @@ class NewNormalizedState(State):
         n = np.linalg.norm(dx);
         if n > 1e2:
             dx *= 1e2/n
-        return dx;
+        if np.any(np.isnan(dx)):
+            print(dx, n);
+            raise Exception("dx is nan");
+        return self._prev_population.mean+dx;

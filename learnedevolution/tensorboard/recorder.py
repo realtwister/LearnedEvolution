@@ -69,7 +69,12 @@ class Recorder(object):
             )
         )
         for variable, tag in self._watching.items():
-            array = np.array(self._data[variable]);
+            summary_metadata.summary_description = '';
+            if hasattr(self._data[variable][0], 'proto'):
+                array = np.array([d.proto().SerializeToString()+b'\xca' for d in self._data[variable]]);
+                summary_metadata.summary_description = self._data[variable][0].__class__.__name__;
+            else:
+                array = np.array(self._data[variable]);
 
             proto = tf.make_tensor_proto(array);
             summary.value.add(

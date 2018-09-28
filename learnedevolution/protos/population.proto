@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+message Population{
+    int32 dimension = 1;
+    int32 size = 2;
+    repeated double mean = 3;
+    repeated double covariance = 4;
+    message FitnessSummary {
+        double median = 1;
+        double mean = 2;
+        double min = 3;
+        double max = 4;
+        double std = 5;
+    }
+    FitnessSummary fitnessSummary = 5;
+    repeated double population = 6;
+    repeated double fitness = 7;
+};

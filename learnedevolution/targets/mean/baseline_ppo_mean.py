@@ -1,7 +1,7 @@
 import numpy as np;
 from gym.spaces import Box;
 
-from baselines.ppo1 import PPO, BatchProvider;
+from ...agents.ppo import PPO, BatchProvider;
 from ...policy.mlp_policy import MlpPolicy
 
 from .mean_target import MeanTarget;
@@ -19,7 +19,7 @@ class BaselinePPOMean(MeanTarget):
         self._prev_end = 0;
 
         self._rewards = rewards
-        self._state = NormalizedState(population_size,dimension);
+        self._state = NewNormalizedState(population_size,dimension);
         self._convergence_criteria = convergence_criteria;
         self._non_converged = -1000;
         self.learning = True;
@@ -40,9 +40,8 @@ class BaselinePPOMean(MeanTarget):
             return self._policy;
         batch = BatchProvider(epochs = 4, horizon = 100, reward_discount = 0.95);
         self._agent = PPO(None, policy_fn, batch,
-            clip_param = 0.03,
-            adam_epsilon = 1e-5,
-            entropy_param = 0.05,
+            clip_param = 0.10,
+            entropy_param = 0.0,
             value_param=1.,
             observation_space = self._state_space(True),
             action_space = self._action_space(True),
@@ -82,7 +81,8 @@ class BaselinePPOMean(MeanTarget):
             self._current_state = state = self._state.encode(population);
             self._current_rewards += [reward];
             action,_ = self._agent._policy.act(True, state);
-        self._target = self._state.decode(action);
+        self._action = action;
+        self._target = self._state.decode(self._action);
         if np.any(np.isnan(self._target)):
             print(self._target);
             raise Exception("mean is nan");
@@ -98,6 +98,7 @@ class BaselinePPOMean(MeanTarget):
         self._current_state = state = self._state.encode(population);
         self._current_rewards += [reward];
         action,_ = self._agent._policy.act(False, state);
+        self._action = action;
         self._target = self._state.decode(action);
         self._step +=1;
         return self._target;

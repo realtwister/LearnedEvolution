@@ -102,6 +102,7 @@ class Algorithm(object):
     @method_event('generate_population')
     def _generate_population(self, fitness):
         population = Population(self._mean, self._covariance, self._population_size, fitness);
+        self._population_obj = population;
         self._population = population.population;
         self._evaluated_fitness = population.fitness;
         return population;

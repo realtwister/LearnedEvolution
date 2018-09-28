@@ -112,5 +112,6 @@ class Benchmark:
 
 
 if __name__ == "__main__":
-    b = Benchmark("./config.py", "/tmp/thesis/single_benchmarks/0", progress=True);
+    name = input("Please enter benchmark name:\n");
+    b = Benchmark("./config.py", "/tmp/thesis/single_benchmarks/"+name, progress=True);
     b.run();

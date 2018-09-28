@@ -3,9 +3,11 @@ import numpy as np;
 from .covariance_target import CovarianceTarget;
 
 class AdaptiveCovarianceNew(CovarianceTarget):
-    def __init__(self, decay_rate= 1.0, percentile=.25):
+    def __init__(self, decay_rate= 1.0, percentile=.25, epsilon = 1e-30, condition_number_epsilon = 1e6):
         self.gamma = decay_rate;
         self.percentile = percentile;
+        self.epsilon = epsilon;
+        self.condition_number_epsilon = condition_number_epsilon;
 
     def _reset(self, initial_mean, initial_covariance):
         self._covariance = initial_covariance;
@@ -27,8 +29,8 @@ class AdaptiveCovarianceNew(CovarianceTarget):
         # We need to ensure the condition number is OK to avoid singular matrix.
         u,s,_ = np.linalg.svd(new_covariance);
         s_max  = np.max(s)
-        s_max  = np.clip(s_max, 1e-20, 1e3);
-        s = np.clip(s, s_max/1e3, s_max);
+        s_max  = np.clip(s_max, self.epsilon*self.condition_number_epsilon, 1e3);
+        s = np.clip(s, s_max/self.condition_number_epsilon, s_max);
         new_covariance = u*s@u.T
 
         self._old_cov = self._covariance;

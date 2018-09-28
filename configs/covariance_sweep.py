@@ -22,11 +22,11 @@ from learnedevolution.problems import *;
 
 class BenchmarkConfig:
     parameters = dict(
-        population_size = 10,
+        population_size = <<VARIABLE:population_size{{[10,100]}}>>,
         dimension = 2,
         N_train = 200,
         N_test = 100,
-        N_epoch = 100,
+        N_epoch = 1,
         seed_test = 1000,
         seed_train = 1001,
 
@@ -70,8 +70,8 @@ class BenchmarkConfig:
             convergence_criteria=[convergence]);
 
         mean_targets = {
-            ppo_mean:1,
-            #MaximumLikelihoodMean(0.3):1,
+            #ppo_mean:1,
+            MaximumLikelihoodMean(0.3):1,
         }
 
         # initiate covariance target
@@ -81,7 +81,7 @@ class BenchmarkConfig:
             AdaptiveCovarianceNew()
         ]
         covariance_targets = {
-            covariances[2]:1
+            covariances[<<VARIABLE:covariance{{[0,1,2]}}>>]:1
         }
 
         self._algorithm = algorithm = Algorithm(
