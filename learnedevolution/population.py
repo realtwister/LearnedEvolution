@@ -24,7 +24,7 @@ class Population:
         self._fitness = None;
         self._svd = None;
 
-        self._seed();
+        self._random = np.random.RandomState();
 
     def _seed(self, *, seed = None, random_state = None):
         if random_state is not None:
@@ -125,12 +125,7 @@ class Population:
         fitness_summary.min = fitness.min();
         fitness_summary.max = fitness.max();
         fitness_summary.mean = fitness.mean();
-        fitness_summary.median = np.median(fitness);
         fitness_summary.std = fitness.std();
-
-        for descr, value in fitness_summary.ListFields():
-            assert not np.isnan(value), "{} is nan".format(descr.name);
-            assert not np.isinf(value), "{} is inf".format(descr.name);
 
         if not minified:
             proto.population = self.population.tobytes();

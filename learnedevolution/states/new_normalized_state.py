@@ -14,7 +14,13 @@ class NewNormalizedState(State):
         if reference is None:
             reference = population;
         translated = population.fitness-np.mean(reference.fitness);
-        factor =max(np.std(reference.fitness), self.epsilon);
+        factor =np.std(reference.fitness);
+        if factor == 0.:
+            if reference != population:
+                return self.normalize_fitness(population);
+            else:
+                return translated;
+
         normalized = translated/factor;
         return normalized;
 
@@ -34,7 +40,7 @@ class NewNormalizedState(State):
     def _encode(self, population):
         current_state = self.create_single_state(population)
         prev_state = self.create_single_state(self._prev_population,population)
-        total_state = np.stack([current_state, prev_state]);
+        total_state = np.stack([current_state]);
         if np.any(np.isnan(total_state)):
             print("state is NaN");
         if np.any(np.isinf(total_state)):
@@ -53,3 +59,12 @@ class NewNormalizedState(State):
             print(dx, n);
             raise Exception("dx is nan");
         return self._prev_population.mean+dx;
+
+    @property
+    def state_space(self):
+        single_state_size= self.population_size*(self.dimension+1);
+        return dict(type='float', shape=(single_state_size,));
+
+    @property
+    def action_space(self):
+        return dict(type='float', shape=(self.dimension,));

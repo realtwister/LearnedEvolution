@@ -9,7 +9,7 @@ class Benchmark:
         # Initialize everything in config
         config = self._config_is_valid(config_file);
         self._p = self._check_parameters(config.parameters);
-        self._algorithm = config.initiate_algorithm();
+        self._algorithm = config.initiate_algorithm(logdir);
         self._train_suite, self._test_suite = config.initiate_problem_generator();
         loggers = config.initiate_logging(logdir);
         self._logdir = logdir;

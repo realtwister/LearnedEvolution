@@ -3,9 +3,10 @@ syntax = "proto3";
 message Problem{
   string type = 1;
   int32 dimension = 2;
+  bytes parent = 3;
   message param{
     string key = 1;
     repeated float value = 2;
   }
-  repeated param params =3;
+  repeated param params = 4;
 }

@@ -26,8 +26,8 @@ class BaselinePPOMean(MeanTarget):
 
     def _state_space(self, gym = False):
         if gym:
-            return Box(high = 10, low  = -10,shape=(2*(self.p['dimension']+1)*self.p['population_size'],));
-        return dict(shape=(2*(self.p['dimension']+1)*self.p['population_size']), type='float');
+            return Box(high = 10, low  = -10,shape=(1*(self.p['dimension']+1)*self.p['population_size'],));
+        return dict(shape=(1*(self.p['dimension']+1)*self.p['population_size']), type='float');
 
     def _action_space(self, gym = False):
         if gym:

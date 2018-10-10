@@ -95,7 +95,7 @@ class BatchProvider(object):
     def maxlen(self):
         return self._memory.maxlen;
 
-import learnedevolution.utils.tf_util as U;
+import baselines.common.tf_util as U;
 
 from tensorflow.python import debug as tf_debug
 import tensorflow as tf;
