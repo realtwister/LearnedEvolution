@@ -32,7 +32,7 @@ class BenchmarkConfig:
 
     );
 
-    def initiate_algorithm(self):
+    def initiate_algorithm(self, logdir="/tmp/thesis/tmp"):
         # Convergence criterion
         if False:
             self._convergence = convergence = ConvergenceCriterion(gamma=0.02, max_streak=10);
@@ -81,7 +81,7 @@ class BenchmarkConfig:
             AdaptiveCovarianceNew()
         ]
         covariance_targets = {
-            covariances[<<VARIABLE:covariance{{[0,1,2]}}>>]:1
+            covariances[2]:1
         }
 
         self._algorithm = algorithm = Algorithm(

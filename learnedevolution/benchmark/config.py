@@ -4,7 +4,7 @@ from learnedevolution.convergence.time_convergence import TimeConvergence;
 from learnedevolution.convergence.convergence_criterion import ConvergenceCriterion;
 from learnedevolution.convergence.combined_reward import CombinedDifferentialReward;
 
-from learnedevolution.targets.mean import BaselinePPOMean, MaximumLikelihoodMean, TensorforceMean;
+from learnedevolution.targets.mean import BaselinePPOMean, MaximumLikelihoodMean;
 from learnedevolution.rewards.differential_reward import DifferentialReward;
 from learnedevolution.rewards.trace_differential_reward import TraceDifferentialReward;
 from learnedevolution.rewards.divergence_penalty import DivergencePenalty;
@@ -24,15 +24,15 @@ class BenchmarkConfig:
     parameters = dict(
         population_size = 100,
         dimension = 2,
-        N_train = 400,
-        N_test = 10,
+        N_train = 500,
+        N_test = 100,
         N_epoch = 100,
         seed_test = 1000,
         seed_train = 1001,
 
     );
 
-    def initiate_algorithm(self, logdir):
+    def initiate_algorithm(self,logdir="/tmp/thesis/tmp"):
         # Convergence criterion
         if False:
             self._convergence = convergence = ConvergenceCriterion(gamma=0.02, max_streak=10);
@@ -64,9 +64,9 @@ class BenchmarkConfig:
             normalized_fitness,
         ]
 
-        self._ppo_mean = ppo_mean = TensorforceMean(self.parameters['dimension'],
+        self._ppo_mean = ppo_mean = BaselinePPOMean(self.parameters['dimension'],
             population_size = self.parameters['population_size'],
-            rewards = {rewards[1]:1},
+            rewards = {rewards[0]:1},
             convergence_criteria=[convergence]);
 
         mean_targets = {
@@ -107,8 +107,8 @@ class BenchmarkConfig:
     def initiate_logging(self, logdir):
         algo = AlgorithmLogger(self._algorithm, logdir);
 
-        #self._ppo_mean._agent.set_logdir(logdir+"/agent");
-        #mean = algo.create_child(self._ppo_mean);
+        self._ppo_mean._agent.set_logdir(logdir+"/agent");
+        mean = algo.create_child(self._ppo_mean);
         #mean.recorder.watch('_current_reward','reward');
         #mean.recorder.watch('_action','action');
         #mean.recorder.watch('_current_state', 'state');

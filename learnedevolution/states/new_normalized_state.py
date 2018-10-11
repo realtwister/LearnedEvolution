@@ -15,7 +15,6 @@ class NewNormalizedState(State):
 
     def _reset(self):
         self._populations = deque(maxlen = self.number_of_states);
-        self._prev_population = None;
 
     def normalize_fitness(self, population, reference = None):
         if reference is None:
@@ -45,7 +44,7 @@ class NewNormalizedState(State):
         return state;
 
     def _encode(self, population):
-        self._populations.append(population);
+        self._populations.appendleft(population);
         total_state = [];
         for i in range(self.number_of_states):
             if i < len(self._populations):
@@ -58,7 +57,6 @@ class NewNormalizedState(State):
             print("state is NaN");
         if np.any(np.isinf(total_state)):
             print("state is Inf");
-        self._prev_population = population;
         return total_state.flatten();
 
     def _decode(self, action):

@@ -16,7 +16,7 @@ class BaselinePPOMean(MeanTarget):
         self.p['population_size'] = population_size;
         self.p['dimension'] = dimension;
 
-        self._state = NewNormalizedState(population_size,dimension,number_of_states=1);
+        self._state = NewNormalizedState(population_size,dimension,number_of_states=2);
         self._init_agent(logdir);
         self._prev_end = 0;
 
