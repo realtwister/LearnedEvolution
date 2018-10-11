@@ -1,6 +1,8 @@
 import os;
 import importlib.util;
+import shutil
 from tqdm import tqdm;
+from learnedevolution.utils import git_hash;
 
 
 class Benchmark:
@@ -8,6 +10,7 @@ class Benchmark:
 
         # Initialize everything in config
         config = self._config_is_valid(config_file);
+        self._copy_config(config_file, logdir);
         self._p = self._check_parameters(config.parameters);
         self._algorithm = config.initiate_algorithm(logdir);
         self._train_suite, self._test_suite = config.initiate_problem_generator();
@@ -30,6 +33,16 @@ class Benchmark:
         spec.loader.exec_module(config_module)
         assert hasattr(config_module, 'BenchmarkConfig');
         return config_module.BenchmarkConfig();
+
+    @staticmethod
+    def _copy_config(config_file,logdir):
+        if not os.path.exists(logdir):
+            os.makedirs(logdir)
+        new_config = os.path.join(logdir, 'config.py');
+        with open(config_file, 'r') as original: data = original.read()
+        with open(new_config, 'w') as modified: modified.write("# GIT HASH: "+git_hash()+"\n" + data)
+
+
 
     @staticmethod
     def _check_parameters(parameters):

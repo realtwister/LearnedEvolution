@@ -15,11 +15,12 @@ class BaselinePPOMean(MeanTarget):
         super().__init__();
         self.p['population_size'] = population_size;
         self.p['dimension'] = dimension;
+
+        self._state = NewNormalizedState(population_size,dimension,number_of_states=1);
         self._init_agent(logdir);
         self._prev_end = 0;
 
         self._rewards = rewards
-        self._state = NewNormalizedState(population_size,dimension);
         self._convergence_criteria = convergence_criteria;
         self._non_converged = -1000;
         self.learning = True;
@@ -43,8 +44,8 @@ class BaselinePPOMean(MeanTarget):
             clip_param = 0.10,
             entropy_param = 0.0,
             value_param=1.,
-            observation_space = self._state_space(True),
-            action_space = self._action_space(True),
+            observation_space = self._state.gym_state_space,
+            action_space = self._state.gym_action_space,
             log_dir = log_dir);
 
     def _reset(self, initial_mean, initial_covariance):

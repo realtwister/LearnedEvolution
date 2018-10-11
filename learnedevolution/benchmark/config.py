@@ -25,7 +25,7 @@ class BenchmarkConfig:
         population_size = 100,
         dimension = 2,
         N_train = 400,
-        N_test = 100,
+        N_test = 10,
         N_epoch = 100,
         seed_test = 1000,
         seed_train = 1001,
@@ -64,9 +64,9 @@ class BenchmarkConfig:
             normalized_fitness,
         ]
 
-        self._ppo_mean = ppo_mean = BaselinePPOMean(self.parameters['dimension'],
+        self._ppo_mean = ppo_mean = TensorforceMean(self.parameters['dimension'],
             population_size = self.parameters['population_size'],
-            rewards = {rewards[0]:1},
+            rewards = {rewards[1]:1},
             convergence_criteria=[convergence]);
 
         mean_targets = {

@@ -1,13 +1,20 @@
 import numpy as np;
+from collections import deque;
+from gym.spaces import Box;
+
 from .state import State;
 
 class NewNormalizedState(State):
-    def __init__(self, population_size, dimension, epsilon = 1e-20):
+    def __init__(self, population_size, dimension,
+        number_of_states = 2,
+        epsilon = 1e-20):
         self.population_size = population_size;
         self.dimension = dimension;
         self.epsilon = epsilon;
+        self.number_of_states = number_of_states;
 
     def _reset(self):
+        self._populations = deque(maxlen = self.number_of_states);
         self._prev_population = None;
 
     def normalize_fitness(self, population, reference = None):
@@ -38,9 +45,15 @@ class NewNormalizedState(State):
         return state;
 
     def _encode(self, population):
-        current_state = self.create_single_state(population)
-        prev_state = self.create_single_state(self._prev_population,population)
-        total_state = np.stack([current_state]);
+        self._populations.append(population);
+        total_state = [];
+        for i in range(self.number_of_states):
+            if i < len(self._populations):
+                current_population = self._populations[i]
+            else:
+                current_population = None
+            total_state.append(self.create_single_state(current_population, self._populations[0]));
+        total_state = np.stack(total_state);
         if np.any(np.isnan(total_state)):
             print("state is NaN");
         if np.any(np.isinf(total_state)):
@@ -49,22 +62,31 @@ class NewNormalizedState(State):
         return total_state.flatten();
 
     def _decode(self, action):
-        if self._prev_population is None:
+        if len(self._populations) == 0:
             return action;
-        dx = self._prev_population.morph(action);
+        dx = self._populations[0].morph(action);
         n = np.linalg.norm(dx);
         if n > 1e2:
             dx *= 1e2/n
         if np.any(np.isnan(dx)):
             print(dx, n);
             raise Exception("dx is nan");
-        return self._prev_population.mean+dx;
+        return self._populations[0].mean+dx;
 
     @property
     def state_space(self):
         single_state_size= self.population_size*(self.dimension+1);
-        return dict(type='float', shape=(single_state_size,));
+        return dict(type='float', shape=(self.number_of_states*single_state_size,));
+
+    @property
+    def gym_state_space(self):
+        single_state_size= self.population_size*(self.dimension+1);
+        return Box(high = 10, low  = -10,shape=(self.number_of_states*single_state_size,));
 
     @property
     def action_space(self):
         return dict(type='float', shape=(self.dimension,));
+
+    @property
+    def gym_action_space(self):
+        return Box(high = 100, low= -100, shape=(self.dimension,));
