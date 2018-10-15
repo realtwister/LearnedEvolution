@@ -84,6 +84,10 @@ class Population:
         return self._raw_population;
 
     @property
+    def dimension(self):
+        return len(self._mean);
+
+    @property
     def population(self):
         if self._population is None:
             self._calculate();

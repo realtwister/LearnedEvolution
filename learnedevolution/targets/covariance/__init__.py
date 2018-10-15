@@ -7,3 +7,4 @@ from .spherical_covariance import SphericalCovariance;
 from .adaptive_covariance_select import AdaptiveCovarianceSelect;
 from .adaptive_covariance_new import AdaptiveCovarianceNew;
 from .adaptive_covariance_eig import AdaptiveCovarianceEig;
+from .nes_covariance import NESCovariance;

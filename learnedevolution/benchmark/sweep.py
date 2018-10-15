@@ -101,6 +101,7 @@ def run_single(args):
     from wurlitzer import pipes
     from io import StringIO
     import sys;
+    print("running with", args);
 
     sys.stdout = open(os.path.join(run_dir,"stdout"), "a")
     sys.stderr =  open(os.path.join(run_dir,"stderr"), "a")
@@ -179,6 +180,7 @@ def main():
     print("Running on {} processes...".format(args.workers));
     with Pool(args.workers, maxtasksperchild=1) as p:
         res = p.map_async(run_single, map_args);
+        print("running async");
 
         bar = ProgressBar(max_value=len_combinations);
         timers =[0]*len_combinations;

@@ -16,7 +16,7 @@ class SinusoidalNoiseProblem:
         return self;
 
     def random(self, random_state, dimension,**kwargs):
-        return DiscretizedProblem.random(random_state, dimension, self._problem, self._period, self._amplitude, **kwargs)
+        return SinusoidalNoisedProblem.random(random_state, dimension, self._problem, self._period, self._amplitude, **kwargs)
 
 class SinusoidalNoisedProblem(Problem, RandomGeneratable):
 
@@ -45,7 +45,7 @@ class SinusoidalNoisedProblem(Problem, RandomGeneratable):
 
             amplitude = delta*random_state.rand()+amplitude[0];
 
-        return DiscretizedProblem(problem, period, amplitude);
+        return SinusoidalNoisedProblem(problem, period, amplitude);
 
     def fitness(self, xs):
         super().fitness(xs);
