@@ -11,10 +11,17 @@ from ...states.benchmark_state import BenchmarkState;
 
 class BaselinePPOMean(MeanTarget):
     _API = 2.;
-    def __init__(self, dimension, population_size, rewards, convergence_criteria, logdir = None):
+    def __init__(self, dimension, population_size, rewards, convergence_criteria,
+        logdir = None,
+        num_hid_layers = 2,
+        hid_size = 128):
         super().__init__();
         self.p['population_size'] = population_size;
         self.p['dimension'] = dimension;
+
+        self._num_hid_layers = num_hid_layers;
+        self._hid_size = hid_size;
+
 
         self._state = NewNormalizedState(population_size,dimension,number_of_states=2);
         self._init_agent(logdir);
@@ -37,7 +44,7 @@ class BaselinePPOMean(MeanTarget):
 
     def _init_agent(self, log_dir):
         def policy_fn(name, ob_space, ac_space, summaries = False, should_act = True):
-            self._policy = MlpPolicy(name=name, ob_space=ob_space, ac_space=ac_space,hid_size=128, num_hid_layers=2, summaries= summaries, should_act= should_act);
+            self._policy = MlpPolicy(name=name, ob_space=ob_space, ac_space=ac_space,hid_size=self._hid_size, num_hid_layers=self._num_hid_layers, summaries= summaries, should_act= should_act);
             return self._policy;
         batch = BatchProvider(epochs = 4, horizon = 100, reward_discount = 0.95);
         self._agent = PPO(None, policy_fn, batch,
