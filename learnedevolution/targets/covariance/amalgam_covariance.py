@@ -93,6 +93,7 @@ class AMaLGaMCovariance(CovarianceTarget):
 
 
 
-
+    def _calculate_deterministic(self,population):
+        return self._calculate(population);
     def _terminating(self, population):
         pass;

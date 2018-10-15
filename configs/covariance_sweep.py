@@ -13,7 +13,7 @@ from learnedevolution.rewards.fitness_reward import FitnessReward;
 from learnedevolution.rewards.lagging_differential import LaggingDifferentialReward;
 
 from learnedevolution.targets.covariance import ConstantCovariance;
-from learnedevolution.targets.covariance import DiagonalCovariance, AdaptiveCovariance, AdaptiveCovarianceSelect, AdaptiveCovarianceNew, AdaptiveCovarianceEig;
+from learnedevolution.targets.covariance import AMaLGaMCovariance, DiagonalCovariance, AdaptiveCovariance, AdaptiveCovarianceSelect, AdaptiveCovarianceNew, AdaptiveCovarianceEig;
 
 from learnedevolution.tensorboard.algorithm_logger import AlgorithmLogger;
 from learnedevolution.tensorboard.generator_logger import GeneratorLogger;
@@ -81,7 +81,7 @@ class BenchmarkConfig:
             AdaptiveCovarianceNew()
         ]
         covariance_targets = {
-            covariances[2]:1
+            AMaLGaMCovariance():1
         }
 
         self._algorithm = algorithm = Algorithm(
