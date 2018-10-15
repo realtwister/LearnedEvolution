@@ -75,6 +75,9 @@ class Population:
         u,s,h = self.svd;
         return np.dot((population-self._mean),u)/np.sqrt(s)[None,:];
 
+    def __len__(self):
+        return self._N;
+
 
 
     @property

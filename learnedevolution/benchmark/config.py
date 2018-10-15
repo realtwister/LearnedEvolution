@@ -23,7 +23,7 @@ from learnedevolution.problems import *;
 class BenchmarkConfig:
     parameters = dict(
         population_size = 100,
-        dimension = 3,
+        dimension = 5,
         N_train = 500,
         N_test = 100,
         N_epoch = 100,
@@ -64,7 +64,7 @@ class BenchmarkConfig:
             normalized_fitness,
         ]
 
-        self._ppo_mean = ppo_mean = TensorforceMean(self.parameters['dimension'],
+        self._ppo_mean = ppo_mean = BaselinePPOMean(self.parameters['dimension'],
             population_size = self.parameters['population_size'],
             rewards = {rewards[0]:1},
             convergence_criteria=[convergence]);

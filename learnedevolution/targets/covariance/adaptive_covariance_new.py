@@ -15,7 +15,7 @@ class AdaptiveCovarianceNew(CovarianceTarget):
         self._old_mean = initial_mean;
 
     def _update_mean(self, mean):
-        self._old_mean = self._mean;
+        self._old_mean = self._mean.copy();
         self._mean = mean;
         return;
     def _calculate(self, population, F):
@@ -25,7 +25,7 @@ class AdaptiveCovarianceNew(CovarianceTarget):
         for individual in selection:
             delta = individual-self._old_mean;
             new_covariance += np.outer(delta,delta)
-        new_covariance /= (selection.shape[0]+1)
+        new_covariance /= (selection.shape[0])
         # We need to ensure the condition number is OK to avoid singular matrix.
         u,s,_ = np.linalg.svd(new_covariance);
         s_max  = np.max(s)

@@ -8,3 +8,5 @@ from .adaptive_covariance_select import AdaptiveCovarianceSelect;
 from .adaptive_covariance_new import AdaptiveCovarianceNew;
 from .adaptive_covariance_eig import AdaptiveCovarianceEig;
 from .nes_covariance import NESCovariance;
+from .cmaes_covariance import CMAESCovariance;
+from .amalgam_covariance import AMaLGaMCovariance;
