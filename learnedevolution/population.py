@@ -107,7 +107,7 @@ class Population:
         if self._svd is None:
             u,s,h = np.linalg.svd(self._covariance);
             if np.any(np.sqrt(s)<self._epsilon):
-                log.warning('Population eigenvalue smaller than epsilon(={})\n'.format(self._epsilon));
+                log.debug('Population eigenvalue smaller than epsilon(={})\n'.format(self._epsilon));
                 s = np.clip(s, self._epsilon, None);
             self._svd = (u,s,h);
         return self._svd;
