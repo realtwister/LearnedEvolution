@@ -14,6 +14,7 @@ class Rosenbrock(Problem, RandomGeneratable):
 
     def __init__(self,dimension):
         super().__init__(dimension);
+        print('d:',dimension)
         self._evaluations = 0;
         self._params = dict(
         )
@@ -24,7 +25,7 @@ class Rosenbrock(Problem, RandomGeneratable):
 
     def fitness(self, xs):
         super().fitness(xs);
-        xs = xs/100+np.array([1,1]);
+        xs = xs/100+np.array([1]*self.dimension);
         x = xs[...,:-1]
         y = xs[...,1:]
         a = 1. - x
@@ -35,4 +36,4 @@ class Rosenbrock(Problem, RandomGeneratable):
 
     @property
     def optimum(self):
-        return np.array([0,0]);
+        return np.array([0]*self.dimension);
