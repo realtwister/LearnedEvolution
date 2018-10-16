@@ -75,7 +75,7 @@ class Algorithm(object):
         self.reset();
         while True:
             converged = self._step(fitness, deterministic);
-            if converged or self._iteration >= maximum_iterations:
+            if converged:
                 break;
         return self._mean, self._covariance;
 

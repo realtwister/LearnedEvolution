@@ -13,20 +13,22 @@ from learnedevolution.rewards.fitness_reward import FitnessReward;
 from learnedevolution.rewards.lagging_differential import LaggingDifferentialReward;
 
 from learnedevolution.targets.covariance import ConstantCovariance;
-from learnedevolution.targets.covariance import DiagonalCovariance, AdaptiveCovariance, AdaptiveCovarianceSelect, AdaptiveCovarianceNew, AdaptiveCovarianceEig;
+from learnedevolution.targets.covariance import AMaLGaMCovariance,DiagonalCovariance, AdaptiveCovariance, AdaptiveCovarianceSelect, AdaptiveCovarianceNew, AdaptiveCovarianceEig;
 
 from learnedevolution.tensorboard.algorithm_logger import AlgorithmLogger;
 from learnedevolution.tensorboard.generator_logger import GeneratorLogger;
 
 from learnedevolution.problems import *;
 
+dimension = 10;
+
 class BenchmarkConfig:
     parameters = dict(
-        population_size = 100,
+        population_size = 50,
         dimension = 5,
-        N_train = 500,
+        N_train = 2000,
         N_test = 100,
-        N_epoch = 100,
+        N_epoch = 25,
         seed_test = 1000,
         seed_train = 1001,
 
@@ -37,7 +39,7 @@ class BenchmarkConfig:
         if False:
             self._convergence = convergence = ConvergenceCriterion(gamma=0.02, max_streak=10);
         else:
-            self._convergence = convergence = TimeConvergence(100);
+            self._convergence = convergence = TimeConvergence(dimension*100);
 
         #self._convergence = convergence = CombinedDifferentialReward();
 

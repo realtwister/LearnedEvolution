@@ -10,7 +10,8 @@ class AMaLGaMCovariance(CovarianceTarget):
         alpha_Sigma = [-1.1,1.2,1.6],
         NIS_MAX = 25,
         tau = 0.35,
-        epsilon = 1e-20):
+        epsilon = 1e-30,
+        condition_number_epsilon = 1e6):
 
         self.epsilon = epsilon;
         self.theta_SDR = theta_SDR;
@@ -19,6 +20,7 @@ class AMaLGaMCovariance(CovarianceTarget):
         self.NIS_MAX = NIS_MAX;
         self.alpha_Sigma = alpha_Sigma;
         self.tau = tau;
+        self.condition_number_epsilon = condition_number_epsilon;
 
     def _reset(self, initial_mean, initial_covariance):
         self.mean = initial_mean;
@@ -66,6 +68,13 @@ class AMaLGaMCovariance(CovarianceTarget):
 
         self.Sigma *= (1-eta_Sigma);
         self.Sigma += eta_Sigma*current_update;
+
+        # We need to ensure the condition number is OK to avoid singular matrix.
+        u,s,_ = np.linalg.svd(self.Sigma);
+        s_max  = np.max(s)
+        s_max  = np.clip(s_max, self.epsilon*self.condition_number_epsilon, None);
+        s = np.clip(s, s_max/self.condition_number_epsilon, s_max);
+        self.Sigma = u*s@u.T
 
     def update_multiplier(self, population):
         if np.any(population.fitness>self.best_f):
