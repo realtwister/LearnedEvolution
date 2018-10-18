@@ -62,7 +62,8 @@ class BatchProvider(object):
         # Calculate return
         returns = advantages + values[:-1];
         returns = discount(rewards[:-1], self._reward_discount);
-        observations  =list(zip(states, actions, (advantages-advantages.mean())/advantages.std(), returns));
+        #advantages = (advantages-advantages.mean())/advantages.std();
+        observations  =list(zip(states, actions, advantages, returns));
         self._new.extend(observations);
         self._memory.extend(observations);
         self._buffer.clear();
