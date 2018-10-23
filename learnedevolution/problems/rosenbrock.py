@@ -14,7 +14,6 @@ class Rosenbrock(Problem, RandomGeneratable):
 
     def __init__(self,dimension):
         super().__init__(dimension);
-        print('d:',dimension)
         self._evaluations = 0;
         self._params = dict(
         )
