@@ -91,7 +91,7 @@ class Algorithm(object):
         covariance = self._calculate_covariance(population, deterministic);
 
         self._iteration += 1;
-        if self._is_converged(population.fitness):
+        if self._is_converged(population):
             self._terminate(fitness,deterministic);
             return True;
         return False;
@@ -128,20 +128,12 @@ class Algorithm(object):
         return covariance;
 
     @method_event('is_converged')
-    def _is_converged(self, fitness):
+    def _is_converged(self, population):
         converged = False;
         for criterion in self._convergence_criteria:
-            converged |= criterion(fitness, self._mean, self._covariance);
+            converged |= criterion(population);
 
         return converged;
-
-        if np.trace(self._covariance)/self._dimension < self.__epsilon:
-            self._converged += 1;
-            if self._converged >= 5:
-                return True;
-        else:
-            self._converged = 0;
-        return False;
 
     @method_event('terminate')
     def _terminate(self, fitness, deterministic):

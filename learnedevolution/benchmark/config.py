@@ -2,6 +2,8 @@ from learnedevolution.algorithm import Algorithm;
 
 from learnedevolution.convergence.time_convergence import TimeConvergence;
 from learnedevolution.convergence.convergence_criterion import ConvergenceCriterion;
+from learnedevolution.convergence.amalgam_convergence import AMaLGaMConvergence;
+from learnedevolution.convergence.covariance_convergence import CovarianceConvergence;
 from learnedevolution.convergence.combined_reward import CombinedDifferentialReward;
 
 from learnedevolution.targets.mean import BaselinePPOMean, MaximumLikelihoodMean,TensorforceMean;
@@ -24,9 +26,9 @@ dimension = 10;
 
 class BenchmarkConfig:
     parameters = dict(
-        population_size = 50,
-        dimension = 5,
-        N_train = 2000,
+        population_size = 100,
+        dimension = 2,
+        N_train = 1000,
         N_test = 100,
         N_epoch = 25,
         seed_test = 1000,
@@ -36,10 +38,11 @@ class BenchmarkConfig:
 
     def initiate_algorithm(self,logdir="/tmp/thesis/tmp"):
         # Convergence criterion
-        if False:
+        if True:
             self._convergence = convergence = ConvergenceCriterion(gamma=0.02, max_streak=10);
+            self._convergence = convergence = CovarianceConvergence();
         else:
-            self._convergence = convergence = TimeConvergence(dimension*100);
+            self._convergence = convergence = TimeConvergence(400);
 
         #self._convergence = convergence = CombinedDifferentialReward();
 
@@ -72,8 +75,8 @@ class BenchmarkConfig:
             convergence_criteria=[convergence]);
 
         mean_targets = {
-            #ppo_mean:1,
-            MaximumLikelihoodMean(0.3):1,
+            ppo_mean:1,
+            #MaximumLikelihoodMean(0.3):1,
         }
 
         # initiate covariance target
@@ -99,7 +102,7 @@ class BenchmarkConfig:
 
     def initiate_problem_generator(self):
         problems = [
-            RotateProblem(TranslateProblem(Sphere)),
+            RotateProblem(TranslateProblem(Rosenbrock)),
             #RotateProblem(TranslateProblem)
         ];
         self._train_suite = train_suite = ProblemSuite(problems, dimension= self.parameters['dimension']);

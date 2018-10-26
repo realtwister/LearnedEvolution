@@ -157,6 +157,7 @@ class PPO(object):
         #session = tf_debug.LocalCLIDebugWrapperSession(session);
         #session.add_tensor_filter('has_inf_or_nan', tf_debug.has_inf_or_nan)
         self._session = session;
+        self._saver = tf.train.Saver();
 
         self._setup();
 
@@ -415,6 +416,12 @@ class PPO(object):
 
     def close(self):
         self._session.close();
+
+    def save(self, filename):
+        self._saver.save(self._session, filename)
+
+    def restore(self, filename):
+        self._saver.restore(self._session, filename);
 
     @property
     def tf_loss(self):

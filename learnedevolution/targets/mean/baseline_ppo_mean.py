@@ -156,11 +156,17 @@ class BaselinePPOMean(MeanTarget):
         reward = 0;
         mean_reward = np.percentile(self._current_rewards,90);
         for criterion in self._convergence_criteria:
-            reward += criterion.reward;
+            reward += criterion.reward_factor*mean_reward;
         self._current_reward += reward;
         if self.learning:
             state = self._calculate_state(population);
             self._agent.observe(state, reward, True);
+
+    def save(self, filename):
+        self._agent.save(filename);
+
+    def restore(self, filename):
+        self._agent.restore(filename);
 
     def close(self):
         self._agent.close();
