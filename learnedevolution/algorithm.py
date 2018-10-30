@@ -154,3 +154,16 @@ class Algorithm(object):
 
         for covariance_target in self._covariance_targets:
             getattr(covariance_target, method)(*args)
+
+    def call_on_targets(self, method, args =[]):
+        for target in self._mean_targets:
+            if hasattr(target,method):
+                fn = getattr(target, method);
+                if callable(fn):
+                    fn(*args);
+
+        for target in self._covariance_targets:
+            if hasattr(target,method):
+                fn = getattr(target, method);
+                if callable(fn):
+                    fn(*args);

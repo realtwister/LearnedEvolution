@@ -157,9 +157,9 @@ class PPO(object):
         #session = tf_debug.LocalCLIDebugWrapperSession(session);
         #session.add_tensor_filter('has_inf_or_nan', tf_debug.has_inf_or_nan)
         self._session = session;
-        self._saver = tf.train.Saver();
 
         self._setup();
+        self._saver = tf.train.Saver();
 
     def _setup(self):
         # initialize obervation
