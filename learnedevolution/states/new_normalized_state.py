@@ -16,6 +16,9 @@ class NewNormalizedState(State):
     def _reset(self):
         self._populations = deque(maxlen = self.number_of_states);
 
+    def append_population(self, population):
+        self._populations.appendleft(population);
+
     def normalize_fitness(self, population, reference = None):
         if reference is None:
             reference = population;
@@ -44,7 +47,7 @@ class NewNormalizedState(State):
         return state;
 
     def _encode(self, population):
-        self._populations.appendleft(population);
+        self.append_population(population);
         total_state = [];
         for i in range(self.number_of_states):
             if i < len(self._populations):
@@ -70,6 +73,15 @@ class NewNormalizedState(State):
             print(dx, n);
             raise Exception("dx is nan");
         return self._populations[0].mean+dx;
+
+    def invert(self, mean, reference = None):
+        if reference is None:
+            reference = self._populations[0];
+        normalized_mean = reference.invert_individual(mean);
+
+        return normalized_mean;
+
+
 
     @property
     def state_space(self):

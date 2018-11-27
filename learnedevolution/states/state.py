@@ -22,3 +22,6 @@ class State(object):
     method_event('decode')
     def decode(self, action):
         return self._decode(action);
+
+    def parse_episode(self, episode):
+        raise NotImplementedError();

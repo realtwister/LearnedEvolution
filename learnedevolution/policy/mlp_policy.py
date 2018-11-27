@@ -49,6 +49,7 @@ class MlpPolicy(object):
         ob = tf.get_default_graph().get_tensor_by_name("observations:0");
         if ob is None:
             ob = U.get_placeholder(name="observations", dtype=tf.float32, shape=[sequence_length] + list(ob_space.shape))
+        self._observations = ob;
 
         with tf.variable_scope('pol'):
             last_out = ob

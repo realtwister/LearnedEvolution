@@ -8,13 +8,15 @@ from .mean_target import MeanTarget;
 from ...states.normalized_state import NormalizedState;
 from ...states.new_normalized_state import NewNormalizedState;
 from ...states.benchmark_state import BenchmarkState;
+from ...states.state import State;
 
 class BaselinePPOMean(MeanTarget):
     _API = 2.;
     def __init__(self, dimension, population_size, rewards, convergence_criteria,
         logdir = None,
         num_hid_layers = 2,
-        hid_size = 128):
+        hid_size = 128,
+        state = None):
         super().__init__();
         self.p['population_size'] = population_size;
         self.p['dimension'] = dimension;
@@ -22,8 +24,10 @@ class BaselinePPOMean(MeanTarget):
         self._num_hid_layers = num_hid_layers;
         self._hid_size = hid_size;
 
-
-        self._state = NewNormalizedState(population_size,dimension,number_of_states=2);
+        if state is None:
+            state = NewNormalizedState(population_size,dimension,number_of_states=2);
+        assert isinstance(state, State), "state should be a State"
+        self._state = state;
         self._init_agent(logdir);
         self._prev_end = 0;
 
