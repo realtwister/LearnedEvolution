@@ -27,7 +27,7 @@ dimension = 10;
 class BenchmarkConfig:
     parameters = dict(
         population_size = 100,
-        dimension = 2,
+        dimension = 5,
         N_train = 1000,
         N_test = 100,
         N_epoch = 25,
@@ -40,7 +40,7 @@ class BenchmarkConfig:
         # Convergence criterion
         if True:
             self._convergence = convergence = ConvergenceCriterion(gamma=0.02, max_streak=10);
-            self._convergence = convergence = CovarianceConvergence();
+            self._convergence = convergence = CovarianceConvergence(threshold=1e-20);
         else:
             self._convergence = convergence = TimeConvergence(400);
 
@@ -86,7 +86,7 @@ class BenchmarkConfig:
             AdaptiveCovarianceNew()
         ]
         covariance_targets = {
-            covariances[2]:1
+            AMaLGaMCovariance():1
         }
 
         self._algorithm = algorithm = Algorithm(
@@ -112,11 +112,9 @@ class BenchmarkConfig:
     def initiate_logging(self, logdir):
         algo = AlgorithmLogger(self._algorithm, logdir);
 
-        #self._ppo_mean._agent.set_logdir(logdir+"/agent");
-        #mean = algo.create_child(self._ppo_mean);
-        #mean.recorder.watch('_current_reward','reward');
-        #mean.recorder.watch('_action','action');
-        #mean.recorder.watch('_current_state', 'state');
+        self._ppo_mean._agent.set_logdir(logdir+"/agent");
+        mean = algo.create_child(self._ppo_mean);
+        mean.recorder.watch('_current_reward','reward');
 
         gen_log = GeneratorLogger(self._test_suite, logdir);
         return algo, gen_log
