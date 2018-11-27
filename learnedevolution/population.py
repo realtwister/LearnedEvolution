@@ -71,9 +71,16 @@ class Population:
 
     def invert(self, population):
         if isinstance(population, self.__class__):
+            if self == population:
+                return self.raw_population;
             population = population.population;
         u,s,h = self.svd;
         return np.dot((population-self._mean),u)/np.sqrt(s)[None,:];
+
+    def invert_individual(self, individual):
+        u,s,h = self.svd;
+        delta = np.dot((individual-self._mean), u)/np.sqrt(s)[:];
+        return delta;
 
     def __len__(self):
         return self._N;
