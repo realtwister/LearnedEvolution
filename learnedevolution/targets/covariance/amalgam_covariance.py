@@ -48,9 +48,15 @@ class AMaLGaMCovariance(CovarianceTarget):
         self.t += 1;
         self.best_f = max(self.best_f, np.max(population.fitness));
 
-        self.covariance = self.Sigma*self.c_multiplier;
-        if self.c_multiplier < 1:
-            print("cov:",self.c_multiplier);
+        new_covariance = self.Sigma*self.c_multiplier;
+
+        u,s,_ = np.linalg.svd(new_covariance);
+        s_max  = np.max(s)
+        s_max  = np.clip(s_max, self.epsilon*self.condition_number_epsilon, 1e3);
+        s = np.clip(s, s_max/self.condition_number_epsilon, s_max);
+        new_covariance = u*s@u.T
+
+        self.covariance = new_covariance
 
         return self.covariance;
 
