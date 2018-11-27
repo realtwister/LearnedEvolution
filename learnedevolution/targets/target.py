@@ -1,8 +1,9 @@
 import numpy as np;
 
-from ..utils.signals import method_event;
+from ..utils.signals import method_event
+from ..utils.parse_config import ParseConfig
 
-class Target(object):
+class Target(ParseConfig):
     _API = 1;
     def __init__(self):
         self.seed(None);

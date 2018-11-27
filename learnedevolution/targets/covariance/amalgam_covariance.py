@@ -114,3 +114,26 @@ class AMaLGaMCovariance(CovarianceTarget):
         return self._calculate(population);
     def _terminating(self, population):
         pass;
+
+    @classmethod
+    def _get_kwargs(cls, config, key = ""):
+        cls._config_required(
+            'theta_SDR',
+            'eta_DEC',
+            'alpha_Sigma',
+            'NIS_MAX',
+            'tau',
+            'epsilon',
+            'condition_number_epsilon'
+        )
+        cls._config_defaults(
+            theta_SDR = 1.,
+            eta_DEC = 0.9,
+            alpha_Sigma = [-1.1,1.2,1.6],
+            NIS_MAX = 25,
+            tau = 0.35,
+            epsilon = 1e-30,
+            condition_number_epsilon = 1e6
+        )
+
+        return super()._get_kwargs(config, key = key);

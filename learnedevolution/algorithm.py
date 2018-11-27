@@ -3,26 +3,26 @@ import numpy as np;
 import tensorflow as tf;
 
 from .utils.signals import method_event;
-from .convergence.convergence_criterion import ConvergenceCriterion;
+from .utils.parse_config import ParseConfig, config_factory;
 
 from .population import Population;
 
 import logging;
 log = logging.getLogger(__name__)
 
-class Algorithm(object):
+class Algorithm(ParseConfig):
     __epsilon = 1e-5;
+
     @method_event('initialize')
-    def __init__(self, dimension, mean_targets, covariance_targets, convergence_criteria,
+    def __init__(self, dimension, mean_function, covariance_function, convergence_criterion,
         population_size = 100,
         maximum_iterations = 100):
 
         self._dimension = dimension;
 
-        self._mean_targets = mean_targets;
-        self._covariance_targets = covariance_targets;
-        # recursive convergence check for logic groups
-        self._convergence_criteria = convergence_criteria;
+        self._mean_targets = {mean_function:1};
+        self._covariance_targets = {covariance_function:1};
+        self._convergence_criteria = [convergence_criterion];
 
         self._population_size = population_size;
         self._maximum_iterations = maximum_iterations;
@@ -167,3 +167,45 @@ class Algorithm(object):
                 fn = getattr(target, method);
                 if callable(fn):
                     fn(*args);
+
+    @classmethod
+    def _get_kwargs(cls, config, key = ""):
+        from .convergence import convergence_classes;
+        from .targets.mean import mean_classes;
+        from .targets.covariance import covariance_classes;
+        cls._config_required(
+            'dimension',
+            'population_size',
+            'mean_function',
+            'covariance_function',
+            'convergence_criterion',
+        )
+        cls._config_defaults(
+            dimension = 2,
+            population_size = 100,
+        )
+
+        kwargs = super()._get_kwargs(config, key = key);
+
+        # Initiate convergence criterion
+        kwargs['convergence_criterion'] = config_factory(
+            classes = convergence_classes,
+            config = config,
+            key = key + ".convergence_criterion"
+        );
+
+        # Initiate mean function
+        kwargs['mean_function'] = config_factory(
+            classes = mean_classes,
+            config = config,
+            key = key + ".mean_function"
+        );
+
+        # Initiate mean function
+        kwargs['covariance_function'] = config_factory(
+            classes = covariance_classes,
+            config = config,
+            key = key + ".covariance_function"
+        );
+
+        return kwargs

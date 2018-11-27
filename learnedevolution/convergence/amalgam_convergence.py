@@ -1,6 +1,8 @@
 import numpy as np;
 
-class AMaLGaMConvergence(object):
+from .convergence import Convergence;
+
+class AMaLGaMConvergence(Convergence):
     def __init__(self,
         threshold = 1e-1,
         theta_SDR = 1.,
@@ -80,3 +82,28 @@ class AMaLGaMConvergence(object):
     @property
     def reward(self):
         return self.reward_factor*self.reward_per_step;
+
+    @classmethod
+    def _get_kwargs(cls, config, key = ""):
+        cls._config_required(
+            'threshold',
+            'theta_SDR',
+            'eta_DEC',
+            'NIS_MAX',
+            'epsilon',
+            'max_iter',
+            'reward_per_step',
+            'wait'
+        )
+        cls._config_defaults(
+            threshold = 1e-1,
+            theta_SDR = 1.,
+            eta_DEC = 0.9,
+            NIS_MAX = 5,
+            epsilon = 1e-30,
+            max_iter = 200,
+            reward_per_step =1,
+            wait = 0
+        )
+
+        return super()._get_kwargs(config, key = key);
