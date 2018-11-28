@@ -27,7 +27,7 @@ dimension = 10;
 class BenchmarkConfig:
     parameters = dict(
         population_size = 100,
-        dimension = 5,
+        dimension = 2,
         N_train = 1000,
         N_test = 100,
         N_epoch = 25,
