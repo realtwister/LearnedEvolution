@@ -46,7 +46,8 @@ class BenchmarkConfig:
                 type = "AMaLGaMCovariance"
             ),
             convergence_criterion = dict(
-                type = "CovarianceConvergence"
+                type = "CovarianceConvergence",
+                threshold = 1e-20
             )
         )
 
