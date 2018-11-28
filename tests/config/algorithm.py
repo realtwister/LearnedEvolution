@@ -1,6 +1,8 @@
 config = dict(
+    dimension= 2,
+    population_size = 100,
     mean_function =dict(
-        type = "MaximumLikelihoodMean"
+        type = "RLMean"
     ),
     covariance_function = dict(
         type = "AMaLGaMCovariance"
@@ -11,4 +13,15 @@ config = dict(
 )
 
 from learnedevolution.algorithm import Algorithm;
-alg = Algorithm.from_config(config);
+algo = Algorithm.from_config(config);
+
+from learnedevolution.problems import *
+
+
+problems = [
+    Sphere
+];
+suite = ProblemSuite(problems, dimension= config['dimension']);
+for problem in suite.iter(100):
+    mean, covariance = algo.maximize(problem.fitness)
+    print(mean);

@@ -370,7 +370,7 @@ class PPO(object):
         self._state = state;
         self._action = None;
 
-    def observe(self, state, reward =None, terminal = None, reset = False):
+    def observe(self, state, reward =None, terminal = False):
         self._reward = reward;
         self._terminal = terminal;
         self._batch.observe(

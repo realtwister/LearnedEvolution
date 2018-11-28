@@ -3,14 +3,15 @@ import numpy as np;
 from .reward import Reward;
 
 class DifferentialReward(Reward):
-    def _reset(self, epsilon = 1e-20):
+    def __init__(self, epsilon = 1e-20):
+        self.epsilon = epsilon;
+    def _reset(self):
         self._step = -1;
         self._fitness_diff = 0;
         self._mean_fitness = 0;
         self._prev_fitness_diff = 1;
         self._prev_mean_fitness = 0;
         self._max=-float('Inf');
-        self.epsilon = epsilon;
 
     def __call__(self,population,  fitness):
         self._step += 1;
@@ -28,3 +29,13 @@ class DifferentialReward(Reward):
         self._prev_fitness_diff = self._fitness_diff;
         self._reward = reward;
         return reward^3+reward;
+
+    @classmethod
+    def _get_kwargs(cls, config, key = ""):
+        cls._config_required(
+            'epsilon'
+        )
+        cls._config_defaults(
+            epsilon = 1e-20
+        )
+        return super()._get_kwargs(config, key = key);

@@ -68,8 +68,6 @@ class AMaLGaMConvergence(Convergence):
         # Check if converging
         if self._wait<0:
             self.update_multiplier(population);
-            if self.c_multiplier != 1.:
-                print(self.c_multiplier);
             return self.c_multiplier < self.threshold;
         return False;
 

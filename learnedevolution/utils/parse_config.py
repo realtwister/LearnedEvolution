@@ -32,6 +32,7 @@ class ParseConfig(object):
                 obj_config[param] = cls.config_defaults[param];
                 value = cls.config_defaults[param];
             kwargs[param]  = value;
+        obj_config.update(kwargs);
         return kwargs
 
     @classmethod
@@ -82,7 +83,7 @@ def _get_own_config(config, key):
     for item in key.split("."):
         if item  == "":
             continue;
-        if item not in config:
+        if item not in current:
             current[item] = dict();
         current = current[item];
     return current;
