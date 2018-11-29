@@ -11,10 +11,10 @@ PopulationTuple = namedtuple('PopulationTuple',['size','dimension','mean','covar
 FitnessSummaryTuple = namedtuple('FitnessSummaryTuple',['median', 'mean', 'min', 'max','std'])
 
 class Population:
-    def __init__(self, mean, covariance, N, fitness_fn, epsilon =1e-30):
+    def __init__(self, mean, covariance, population_size, fitness_fn, epsilon =1e-30, random_state = None):
         self._mean = mean;
         self._covariance = covariance;
-        self._N = N;
+        self._N = population_size;
         self._fitness_fn = fitness_fn;
         self._d = len(mean);
         self._epsilon = epsilon;
@@ -24,7 +24,9 @@ class Population:
         self._fitness = None;
         self._svd = None;
 
-        self._random = np.random.RandomState();
+        self._random = random_state
+        if self._random is None:
+            self._random = np.random.RandomState()
 
     def _seed(self, *, seed = None, random_state = None):
         if random_state is not None:

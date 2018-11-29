@@ -2,6 +2,8 @@ from .agent import Agent
 from .ppo import BatchProvider, PPO
 from ..utils.parse_config import config_factory
 
+import tensorflow as tf
+
 class PPOAgent(Agent):
     def __init__(self,
         observation_space = None,
@@ -39,8 +41,7 @@ class PPOAgent(Agent):
         pass;
 
     def seed(self, seed):
-        # TODO: seeding
-        pass;
+        tf.set_random_seed(seed)
 
     def act(self, observation):
         if self.reward is None:

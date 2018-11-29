@@ -101,7 +101,12 @@ class Algorithm(ParseConfig):
 
     @method_event('generate_population')
     def _generate_population(self, fitness):
-        population = Population(self._mean, self._covariance, self._population_size, fitness);
+        population = Population(
+            mean = self._mean,
+            covariance = self._covariance,
+            population_size = self._population_size,
+            fitness_fn = fitness,
+            random_state = self._random_state);
         self._population_obj = population;
         self._population = population.population;
         self._evaluated_fitness = population.fitness;

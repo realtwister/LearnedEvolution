@@ -25,6 +25,9 @@ class Benchmark(ParseConfig):
 
         self.setup_savedir()
 
+        self.i = 0
+        self.status = "IDLE"
+
     def seed(self, seed = None):
         self.seed = seed;
         self.algorithm.seed(seed);
@@ -33,13 +36,20 @@ class Benchmark(ParseConfig):
     def run(self):
         for i, problem in enumerate(self.problem_suite.iter(self.N_episodes)):
             if self.savedir is not None and self.should_save(i):
-                print(" saving....", end = "\r")
+                self.status = "SAVING"
+                self.print_status();
                 self.algorithm.save(os.path.join(self.savedir,str(i)))
-                print(" i: ",i, end = "\r")
-            if i % 10 == 0:
-                print(" i: ",i, end = "\r")
+                self.status = "RUNNING"
+                self.print_status();
+            if self.i % 10 == 0:
+                self.print_status();
 
             self.algorithm.maximize(problem.fitness);
+            self.i +=1;
+
+    def print_status(self):
+        print(" "*120, end='\r');
+        print(" ",self.i,":",self.status, end="\r");
 
 
     def setup_savedir(self):
