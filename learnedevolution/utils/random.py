@@ -38,9 +38,9 @@ class RandomGenerator(ParseConfig):
         assert hasattr(cls, 'random');
         self._classes.append(cls);
 
-    def iter(self, n = 0):
+    def iter(self, n = -1):
         i = 0;
-        while n == 0 or i<n:
+        while n == -1 or i<n:
             yield self.generate();
             i +=1;
 

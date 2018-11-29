@@ -1,6 +1,8 @@
 from .mean_target import MeanTarget;
 from ...utils.parse_config import config_factory;
 
+import os
+
 class RLMean(MeanTarget):
     _API = 2.;
     def __init__(self, *,
@@ -58,10 +60,12 @@ class RLMean(MeanTarget):
             self.observation = self._observation_space.encode(population)
             self._agent.act(self.observation)
 
-    def save(self, filename):
+    def save(self, savedir):
+        filename = os.path.join(savedir,"RLMean");
         self._agent.save(filename);
 
-    def restore(self, filename):
+    def restore(self, restoredir):
+        filename = os.path.join(restoredir,"RLMean");
         self._agent.restore(filename);
 
     def close(self):
@@ -108,5 +112,5 @@ class RLMean(MeanTarget):
         kwargs['agent'] = config_factory(agent_classes,
             config,
             key+'.agent')
-            
+
         return kwargs;

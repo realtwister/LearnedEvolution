@@ -144,6 +144,12 @@ class Algorithm(ParseConfig):
     def close(self):
         self._call_on_targets('close');
 
+    def save(self, savedir):
+        self.call_on_targets('save', [savedir]);
+
+    def restore(self, restoredir):
+        self.call_on_targets('restore', [restoredir]);
+
     @property
     def current_step(self):
         return self._steps;
@@ -191,21 +197,21 @@ class Algorithm(ParseConfig):
         kwargs['convergence_criterion'] = config_factory(
             classes = convergence_classes,
             config = config,
-            key = key + ".convergence_criterion"
+            key = kwargs['convergence_criterion']['key']
         );
 
         # Initiate mean function
         kwargs['mean_function'] = config_factory(
             classes = mean_classes,
             config = config,
-            key = key + ".mean_function"
+            key = kwargs['mean_function']['key']
         );
 
         # Initiate mean function
         kwargs['covariance_function'] = config_factory(
             classes = covariance_classes,
             config = config,
-            key = key + ".covariance_function"
+            key = kwargs['covariance_function']['key']
         );
 
         return kwargs

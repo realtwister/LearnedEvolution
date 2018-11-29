@@ -21,6 +21,8 @@ class ParseConfig(object):
         for param in cls.config_required:
             if param in cls.config_required_from_obj:
                 value = obj_config[param] if param in obj_config else None;
+                if isinstance(value, dict):
+                    value['key'] = key+"."+param
             else:
                 # Find in provided config
                 value = _get_in_config(config, param, key);
@@ -31,6 +33,8 @@ class ParseConfig(object):
                 # add param to config
                 obj_config[param] = cls.config_defaults[param];
                 value = cls.config_defaults[param];
+                if isinstance(value, dict):
+                    value['key'] = key+"."+param
             kwargs[param]  = value;
         obj_config.update(kwargs);
         return kwargs
@@ -60,7 +64,7 @@ class ParseConfig(object):
         return config.config
 
 # helpers
-def _get_in_config(config, param, key):
+def _get_in_config(config, param, key, current_key = ""):
     assert isinstance(key, str);
     assert isinstance(param, str);
     if key != "":
@@ -71,12 +75,15 @@ def _get_in_config(config, param, key):
 
         # See if we can find the param closer to the key
         new_config = config if key == "" else config[key]
-        current = _get_in_config(new_config, param, new_key);
+        current = _get_in_config(new_config, param, new_key, current_key+"."+key);
         if current is not None:
             return current;
 
     # Return own result
-    return config[param] if param in config else None;
+    current  = config[param] if param in config else None;
+    if isinstance(current, dict):
+        current['key'] = current_key+"."+param;
+    return current;
 
 def _get_own_config(config, key):
     current = config;
