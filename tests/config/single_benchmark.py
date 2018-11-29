@@ -29,7 +29,7 @@ config = dict(
 )
 
 
-from learnedevolution.benchmark.benchmark import Benchmark
+from learnedevolution import Benchmark
 benchmark = Benchmark.from_config(config, 'benchmark')
 benchmark.run();
 

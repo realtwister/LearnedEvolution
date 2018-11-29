@@ -1,7 +1,5 @@
-from ..utils.parse_config import ParseConfig, config_factory
+from .utils.parse_config import ParseConfig, config_factory
 import os
-
-
 
 class Benchmark(ParseConfig):
     def __init__(self,
