@@ -21,19 +21,7 @@ config = dict(
     ),
     benchmark = dict(
         should_save = lambda i: i/(10**np.floor(np.log10(i))) in [1,5],
-        logdir = "/tmp/thesis/single_benchmarks/differentialReward_TimeConv"
         seed = 1000
     ),
-    evaluator = dict(
-        restoredir = "/tmp/thesis/test/savedir2/10000",
-        logdir = "/tmp/thesis/test/savedir2/evaluations",
-        seed = 1001,
-        N_episodes = 100
-    )
 
 )
-
-
-from learnedevolution import Benchmark
-benchmark = Benchmark.from_config(config, 'benchmark')
-benchmark.run()

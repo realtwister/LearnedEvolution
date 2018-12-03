@@ -1,11 +1,15 @@
+import os
 class ParseConfig(object):
     # Parses configuration
     config_required = set()
     config_required_from_obj = ['type']
     config_defaults = {};
+    default_topic = ""
 
     @classmethod
-    def from_config(cls, config, key = "", new = False):
+    def from_config(cls, config, key = None, new = False):
+        if key is None:
+            key = cls.default_topic
         obj_config = _get_own_config(config, key)
         if not new and '[OBJ]' in obj_config:
             return obj_config['[OBJ]'];
@@ -52,12 +56,39 @@ class ParseConfig(object):
         cls.config_defaults = dict(cls.config_defaults);
         cls.config_defaults.update(new);
 
+    @classmethod
+    def from_config_file(cls, config_file, replace=None, overwrite_config_file= None):
+        assert os.path.exists(config_file)
+        if replace is None:
+            replace = dict()
+        config = cls.load_config(config_file)
+        if overwrite_config_file is not None:
+            assert os.path.exists(overwrite_config_file)
+            overwrite_config = cls.load_config(overwrite_config_file, "overwrite_config")
+            cls.config_merge(config, overwrite_config)
+        cls.config_merge(config, replace)
+        obj = cls.from_config(config)
+        return obj
+
+    @staticmethod
+    def config_merge(base_config, overwrite_config):
+        # overwrites the entries in base_config with the entries in overwrite_config
+        b = base_config
+        o = overwrite_config
+        for k in o:
+            if k in base_config and isinstance(o[k], dict) and isinstance(b[k], dict):
+                ParseConfig.config_merge(b[k], o[k])
+            else:
+                b[k] = o[k]
+
+
+
 
 
     @staticmethod
-    def load_config(path):
+    def load_config(path, module_name = "config"):
         import importlib.util
-        spec = importlib.util.spec_from_file_location("config", path)
+        spec = importlib.util.spec_from_file_location(module_name, path)
         config = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(config)
         assert hasattr(config, "config")
