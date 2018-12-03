@@ -163,7 +163,7 @@ class PPO(object):
         self._session = session;
 
         self._setup();
-        self._saver = tf.train.Saver();
+        self._saver = tf.train.Saver(max_to_keep=None);
 
     def _setup(self):
         # initialize obervation

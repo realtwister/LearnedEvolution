@@ -20,7 +20,7 @@ config = dict(
         ]
     ),
     benchmark = dict(
-        should_save = lambda i: i/(10**np.floor(np.log10(i))) in [1,5],
+        should_save = lambda i: set(str(i)[1:]) == set('0'),
         seed = 1000
     ),
 
