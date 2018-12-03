@@ -42,6 +42,7 @@ class PPOAgent(Agent):
 
     def seed(self, seed):
         tf.set_random_seed(seed)
+        self.batch.seed(seed);
 
     def act(self, observation):
         if self.reward is None:
