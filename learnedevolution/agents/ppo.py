@@ -21,6 +21,10 @@ class BatchProvider(object):
         self._new = deque(maxlen = epochs * horizon);
         self._memory = deque(maxlen = epochs * horizon);
         self._buffer = deque(maxlen = horizon);
+        self._random = np.random.RandomState();
+
+    def seed(self, seed):
+        self._random = np.random.RandomState(seed);
 
     def observe(self, state, reward, terminal, predicted_value, action):
         self._buffer.append((
@@ -71,7 +75,7 @@ class BatchProvider(object):
 
     def get_batch(self, batch_size = 100):
         batch_size = min(len(self), batch_size);
-        return [np.array(l) for l in zip(*random.sample(self._memory, batch_size))];
+        return [np.array(l) for l in zip(*self._random.sample(self._memory, batch_size))];
 
     def get_new(self):
         new = copy.deepcopy(self._new);
@@ -80,7 +84,7 @@ class BatchProvider(object):
 
     def iterate_batch(self, batch_size = 100):
         batch_size = min(len(self), batch_size);
-        permuted = np.random.permutation(self._memory);
+        permuted = self._random.permutation(self._memory);
         for i in range(np.ceil(len(permuted)/batch_size).astype(int)):
             yield [np.array(l) for l in zip(*permuted[i*batch_size:(i+1)*batch_size])];
 
@@ -370,7 +374,7 @@ class PPO(object):
         self._state = state;
         self._action = None;
 
-    def observe(self, state, reward =None, terminal = None, reset = False):
+    def observe(self, state, reward =None, terminal = False):
         self._reward = reward;
         self._terminal = terminal;
         self._batch.observe(

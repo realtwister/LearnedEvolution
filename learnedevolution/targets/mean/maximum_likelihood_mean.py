@@ -19,3 +19,14 @@ class MaximumLikelihoodMean(MeanTarget):
 
     def _terminating(self, population):
         pass;
+
+    @classmethod
+    def _get_kwargs(cls, config, key = ""):
+        cls._config_required(
+            'selection_fraction'
+        )
+        cls._config_defaults(
+            selection_fraction = 0.5
+        )
+
+        return super()._get_kwargs(config, key = key);

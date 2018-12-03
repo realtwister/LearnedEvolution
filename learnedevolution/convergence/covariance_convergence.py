@@ -1,6 +1,7 @@
 import numpy as np;
+from .convergence import Convergence
 
-class CovarianceConvergence(object):
+class CovarianceConvergence(Convergence):
     def __init__(self,
         threshold = 1e-10,
         epsilon = 1e-30,
@@ -43,3 +44,22 @@ class CovarianceConvergence(object):
     @property
     def reward(self):
         return self.reward_factor*self.reward_per_step;
+
+    @classmethod
+    def _get_kwargs(cls, config, key = ""):
+        cls._config_required(
+            'threshold',
+            'epsilon',
+            'max_iter',
+            'reward_per_step',
+            'wait'
+        )
+        cls._config_defaults(
+            threshold = 1e-10,
+            epsilon = 1e-30,
+            max_iter = 200,
+            reward_per_step =1,
+            wait = 0
+        )
+
+        return super()._get_kwargs(config, key = key);

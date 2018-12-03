@@ -1,6 +1,7 @@
 from ..utils.signals import method_event;
+from ..utils.parse_config import ParseConfig;
 
-class State(object):
+class State(ParseConfig):
 
     def _reset(self):
         pass;

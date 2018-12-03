@@ -1,6 +1,7 @@
 import numpy as np;
+from .convergence import Convergence
 
-class TimeConvergence(object):
+class TimeConvergence(Convergence):
     def __init__(self,
         max_iter = 100):
         self.max_iter = max_iter;
@@ -10,12 +11,12 @@ class TimeConvergence(object):
         self.iter = 0;
         self.converged = False;
 
-    def __call__(self, fitness, mean, covariance):
+    def __call__(self, population):
         if not self.converged:
-            self.converged = self.is_converged(fitness, mean, covariance);
+            self.converged = self.is_converged();
         return self.converged;
 
-    def is_converged(self, fitness, mean, covariance):
+    def is_converged(self):
         self.iter +=1;
         if self.iter >= self.max_iter:
             return True;
@@ -28,3 +29,14 @@ class TimeConvergence(object):
     @property
     def reward(self):
         return 0;
+
+    @classmethod
+    def _get_kwargs(cls, config, key = ""):
+        cls._config_required(
+            'max_iter'
+        )
+        cls._config_defaults(
+            max_iter = 200,
+        )
+
+        return super()._get_kwargs(config, key = key);
