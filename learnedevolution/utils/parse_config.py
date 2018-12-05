@@ -105,7 +105,10 @@ def _get_in_config(config, param, key, current_key = ""):
         key = key[:idx] if idx > -1 else key;
 
         # See if we can find the param closer to the key
-        new_config = config if key == "" else config[key]
+        if isinstance(config, list):
+            new_config = config if key == "" else config[int(key)]
+        else:
+            new_config = config if key == "" else config[key]
         current = _get_in_config(new_config, param, new_key, current_key+"."+key);
         if current is not None:
             return current;
@@ -121,13 +124,19 @@ def _get_own_config(config, key):
     for item in key.split("."):
         if item  == "":
             continue;
-        if item not in current:
-            current[item] = dict();
+        if isinstance(current, list):
+            item = int(item)
+            if item >= len(current):
+                current[item] = dict()
+        elif item not in current:
+            current[item] = dict()
         current = current[item];
     return current;
 
 def config_factory(classes, config, key = ""):
     obj_config = _get_own_config(config,key);
+    if "type" not in obj_config:
+        print(obj_config)
     assert 'type' in obj_config, '"type" should be specified in {}'.format(key)
     type = obj_config['type'];
     classes = classes();

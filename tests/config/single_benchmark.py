@@ -4,7 +4,10 @@ config = dict(
     population_size = 100,
     algorithm = dict(
         mean_function =dict(
-            type = "RLMean"
+            type = "RLMean",
+            reward_function = dict(
+                type = "DifferentialReward"
+            )
         ),
         covariance_function = dict(
             type = "AMaLGaMCovariance"
@@ -21,7 +24,7 @@ config = dict(
     ),
     benchmark = dict(
         should_save = lambda i: i/(10**np.floor(np.log10(i))) in [1,5],
-        logdir = "/tmp/thesis/single_benchmarks/differentialReward_TimeConv"
+        logdir = "/tmp/thesis/single_benchmarks/differentialReward_TimeConv",
         seed = 1000
     ),
     evaluator = dict(
@@ -34,6 +37,6 @@ config = dict(
 )
 
 
-from learnedevolution import Benchmark
+from learnedevolution.benchmark import Benchmark
 benchmark = Benchmark.from_config(config, 'benchmark')
 benchmark.run()

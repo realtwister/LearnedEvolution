@@ -7,11 +7,11 @@ class RLMean(MeanTarget):
     _API = 2.;
     def __init__(self, *,
         observation_space,
-        reward_fn,
+        reward_function,
         agent
         ):
         self._observation_space = observation_space;
-        self._reward_fn = reward_fn;
+        self._reward_fn = reward_function;
         self._agent = agent;
         self.learning = True;
 
@@ -75,14 +75,14 @@ class RLMean(MeanTarget):
     def _get_kwargs(cls, config, key = ""):
         cls._config_required(
             'observation_space',
-            'reward_fn',
+            'reward_function',
             'agent',
         )
         cls._config_defaults(
             observation_space = dict(
                 type = "InvariantSpace"
             ),
-            reward_fn = dict(
+            reward_function = dict(
                 type = "DifferentialReward"
             ),
             agent = dict(
@@ -104,10 +104,10 @@ class RLMean(MeanTarget):
             config,
             key+'.observation_space')
 
-        kwargs['reward_fn'] = config_factory(
+        kwargs['reward_function'] = config_factory(
             rewards_classes,
             config,
-            key+'.reward_fn')
+            key+'.reward_function')
 
         kwargs['agent'] = config_factory(agent_classes,
             config,

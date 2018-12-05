@@ -2,8 +2,24 @@ import numpy as np;
 from collections import deque;
 
 from .reward import Reward;
+from ..utils.parse_config import ParseConfig,config_factory
 
-class DecayingMinimum:
+def minima_classes():
+    return dict(
+        DecayingMinimum = DecayingMinimum,
+        WindowMinimum = WindowMinimum,
+        InitialMinimum = InitialMinimum
+    )
+
+    return res
+
+def maxima_classes():
+    return dict(
+        DelayedMaximum = DelayedMaximum
+    )
+
+
+class DecayingMinimum(ParseConfig):
     def __init__(self, gamma=0.99):
         self.gamma = gamma;
     def reset(self):
@@ -18,7 +34,17 @@ class DecayingMinimum:
         self.factor *= self.gamma;
         return res;
 
-class WindowMinimum:
+    @classmethod
+    def _get_kwargs(cls, config, key= ""):
+        cls._config_required(
+            'gamma'
+        )
+        cls._config_defaults(
+            gamma = 0.99
+        )
+        return super()._get_kwargs(config, key)
+
+class WindowMinimum(ParseConfig):
     def __init__(self, window_size = 10, selection_ratio = 0.3):
         self.window = deque([],window_size);
         self.ratio = selection_ratio;
@@ -30,7 +56,19 @@ class WindowMinimum:
         self.window.append(fitness);
         return np.mean(sorted(self.window)[:np.ceil(len(self.window)*self.ratio).astype(int)]);
 
-class InitialMinimum:
+    @classmethod
+    def _get_kwargs(cls, config, key= ""):
+        cls._config_required(
+            'window_size',
+            'selection_ratio'
+        )
+        cls._config_defaults(
+            window_size = 10,
+            selection_ratio = 0.3
+        )
+        return super()._get_kwargs(config, key)
+
+class InitialMinimum(ParseConfig):
     def reset(self):
         self.minimum = None;
 
@@ -39,7 +77,7 @@ class InitialMinimum:
             self.minimum = fitness;
         return self.minimum;
 
-class DelayedMaximum:
+class DelayedMaximum(ParseConfig):
     def __init__(self, lag=1):
         self.queue = deque([],lag);
     def reset(self):
@@ -54,11 +92,21 @@ class DelayedMaximum:
         self.queue.append(fitness);
 
         return self.maximum;
+    @classmethod
+    def _get_kwargs(cls, config, key= ""):
+        cls._config_required(
+            'lag'
+        )
+        cls._config_defaults(
+            lag = 1
+        )
+        return super()._get_kwargs(config, key)
 
 class NormalizedFitnessReward(Reward):
     def __init__(self, minima, maxima):
         self.minima = minima;
         self.maxima = maxima;
+        print("Normalized initialized")
     def _reset(self):
         for minimum in self.minima:
             minimum.reset();
@@ -91,3 +139,34 @@ class NormalizedFitnessReward(Reward):
             #return reward;
             return np.clip(10*reward**3+reward,-100,100)/100;
         return 0;
+
+    @classmethod
+    def _get_kwargs(cls, config, key = ""):
+        cls._config_required(
+            'minima',
+            'maxima'
+        )
+        cls._config_defaults(
+            minima = [
+                dict(type = "InitialMinimum"),
+                dict(type = "WindowMinimum"),
+                dict(type= "DecayingMinimum")
+            ],
+            maxima = [
+                dict(type = "DelayedMaximum")
+            ]
+        )
+
+        kwargs = super()._get_kwargs(config, key)
+        minima = []
+        maxima = []
+        for i, minimum in enumerate(kwargs['minima']):
+            minima.append(config_factory(minima_classes, config, key+".minima."+str(i)))
+
+        for i, maximum in enumerate(kwargs['maxima']):
+            maxima.append(config_factory(maxima_classes, config, key+".maxima."+str(i)))
+
+        kwargs['minima'] = minima
+        kwargs['maxima'] = maxima
+
+        return kwargs
