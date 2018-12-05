@@ -39,10 +39,10 @@ class Benchmark(ParseConfig):
     def run(self):
         self.start = (self.i, time.clock())
         for i, problem in enumerate(self.problem_suite.iter(self.N_episodes)):
-            if self.savedir is not None and self.should_save(i):
+            if self.savedir is not None and self.should_save(i+1):
                 self.status = "SAVING"
                 self.print_status();
-                self.algorithm.save(os.path.join(self.savedir,str(i)))
+                self.algorithm.save(os.path.join(self.savedir,str(i+1)))
                 self.status = "RUNNING"
                 self.print_status();
             if self.i % 10 == 0:

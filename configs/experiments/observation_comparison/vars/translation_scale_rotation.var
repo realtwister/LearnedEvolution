@@ -1,0 +1,8 @@
+dict(
+    observation_space = dict(
+        type = "MultiPopulationSpace",
+        single_state=dict(
+            type = "TranslationScaleRotationInvariant"
+        )
+        ),
+    )
