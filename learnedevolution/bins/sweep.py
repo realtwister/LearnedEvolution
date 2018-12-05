@@ -90,7 +90,7 @@ def main(args):
     variable_files = [];
     for f in os.listdir(args.variable_dir):
         f_path = os.path.join(args.variable_dir, f)
-        if os.path.isfile(f_path):
+        if os.path.isfile(f_path) and f[-4:] == ".var":
             with open(f_path,'r') as of:
                 contents = eval(of.read())
             for v in variables:
@@ -99,7 +99,8 @@ def main(args):
             else:
                 variable_files.append(f)
 
-    workers = min(args.workers, len(variable_files))
+    workers = min(int(args.workers), len(variable_files))
+
     print("-------- Summary --------")
     print("Variables: ({})".format( len(variables)))
     for v in variables:
@@ -119,7 +120,7 @@ def main(args):
         f_path = os.path.join(args.variable_dir, f_name)
         with open(f_path,'r') as of:
             values = eval(of.read())
-        new_config_path = os.path.join(tempdir.name, f_name)
+        new_config_path = os.path.join(tempdir.name, f_name[:-4]+".py")
         with open(config) as original:
             with open(new_config_path,'a') as new:
                 for line in original:
@@ -158,9 +159,8 @@ def main(args):
                     window.kill_window()
                 break;
             f_name = queue.pop()
-            config_path = os.path.join(tempdir.name, f_name)
-            if f_name[-3:] == ".py":
-                f_name = f_name[:-3]
+            f_name = f_name[:-4] #Remove .var extension
+            config_path = os.path.join(tempdir.name, f_name+".py")
             current_dir = os.path.join(args.log_dir, f_name)
             window.attached_pane.send_keys("python3 -m learnedevolution benchmark {} {}".format(
             config_path,
@@ -172,5 +172,5 @@ def main(args):
         sleep(1)
     print("All experiments have started or finished on session", session.name)
     print("Waiting before clearing temporary directory")
-    sleep(10)
+    sleep(100)
     tempdir.cleanup()

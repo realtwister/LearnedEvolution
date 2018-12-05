@@ -92,6 +92,7 @@ class ParseConfig(object):
         config = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(config)
         assert hasattr(config, "config")
+        assert isinstance(config.config, dict), "Configuration should be a dictionary"
         return config.config
 
 # helpers
