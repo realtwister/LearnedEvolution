@@ -6,7 +6,7 @@ config = dict(
         mean_function =dict(
             type = "RLMean",
             reward_function = dict(
-                type = "DifferentialReward"
+                type = "FitnessReward"
             )
         ),
         covariance_function = dict(
