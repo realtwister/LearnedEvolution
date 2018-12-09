@@ -17,13 +17,15 @@ class TranslationScaleInvariant(SingleState):
         l = np.sqrt(np.max(s))
 
         P = (population.population-m)/l
-        P = P.flatten()
 
         F_m = np.mean(reference.fitness)
         F_s = np.std(reference.fitness)
         F = (population.fitness-F_m)/F_s
 
-        return np.append(P, F)
+        state = np.append(P, F[:, None], axis=1);
+        state = state[population.fitness.argsort()];
+
+        return state.flatten()
 
     def invert(self, x, reference):
         m = reference.mean

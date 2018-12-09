@@ -16,16 +16,24 @@ class TranslationScaleRotationInvariant(SingleState):
             P = population.raw_population
         else:
             P = reference.invert(population)
-        P = P.flatten()
 
         F_m = np.mean(reference.fitness)
         F_s = np.std(reference.fitness)
         F = (population.fitness-F_m)/F_s
 
-        return np.append(P, F)
+        state = np.append(P, F[:, None], axis=1);
+        state = state[population.fitness.argsort()];
+        return state.flatten()
 
     def invert(self, x, reference):
-        return reference.morph(x)+reference.mean
+        dx = reference.morph(x)
+        n = np.linalg.norm(dx);
+        if n > 1e2:
+            dx *= 1e2/n
+        if np.any(np.isnan(dx)):
+            print(dx, n);
+            raise Exception("dx is nan");
+        return dx+reference.mean
 
     @property
     def state_space(self):
