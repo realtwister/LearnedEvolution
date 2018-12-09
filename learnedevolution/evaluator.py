@@ -104,9 +104,10 @@ class Evaluator(ParseConfig):
             "summarizer"
         )
         cls._config_defaults(
+            seed = 1001,
             N_episodes = 100,
-            name = "evaluation",
-            summarizer = lambda x:x,
+            summarizer = lambda pop: dict(mean_fitness=np.mean(pop.fitness), mean = pop.mean, covariance = pop.covariance),
+            name="evaluation"
         )
 
         kwargs = super()._get_kwargs(config, key)
