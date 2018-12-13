@@ -26,21 +26,18 @@ class Target(ParseConfig):
         self._random_state = np.random.RandomState(seed);
         self._seed(seed);
 
-    def _calculate(self, population, evaluated_fitness):
+    def _calculate(self, population):
         raise NotImplementedError("Method _calculate is not implemented for {}".format(self.__name__));
 
-    def _calculate_deterministic(self, population,evaluated_fitness):
-        return self._calculate(population, evaluated_fitness);
+    def _calculate_deterministic(self, population):
+        return self._calculate(population);
 
     @method_event('call')
     def __call__(self, population, deterministic=False):
         calculate = self._calculate;
         if deterministic:
             calculate = self._calculate_deterministic;
-        if self._API >= 2.:
-            return calculate(population);
-        else:
-            return calculate(population.population, population.fitness);
+        return calculate(population);
 
     def _update_covariance(self, covariance):
         pass;
@@ -56,13 +53,11 @@ class Target(ParseConfig):
     def update_mean(self, mean):
         self._update_mean(mean);
 
-    def _terminating(self, population, evaluated_fitness):
+    def _terminating(self, population):
         pass;
 
-    def _terminating_deterministic(self, population, evaluated_fitness= None):
-        if evaluated_fitness is None:
-            return self._terminating(population);
-        self._terminating(population, evaluated_fitness);
+    def _terminating_deterministic(self, population):
+        return self._terminating(population);
 
     @method_event('terminating')
     def terminating(self, population, deterministic=False):
@@ -70,10 +65,7 @@ class Target(ParseConfig):
             calculate = self._terminating_deterministic
         else:
             calculate = self._terminating;
-        if self._API >= 2.:
-            return calculate(population);
-        else:
-            return calculate(population.population, population.fitness);
+        return calculate(population);
 
     def close(self):
         pass;
