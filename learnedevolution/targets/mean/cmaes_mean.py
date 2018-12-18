@@ -3,27 +3,31 @@ from .mean_target import MeanTarget
 
 class CMAESMean(MeanTarget):
     def __init__(self,
+        population_size,
         weights,
         c_m):
         self.c = c_m
         self.w = weights
 
-    def _calculate(self, population):
         if callable(self.w):
-            w = [self.w(i, len(population)) for i in range(len(population))]
+            w = [self.w(i, population_size) for i in range(population_size)]
         else:
-            w = self.w
-        assert len(w) >= len(population)
-        w = np.array([max(0,w) for weight in w])
-        xw = np.sum(w*population.raw_population[np.argsort(population.fitness)])
-
-
+            w = list(self.w)
+        assert len(w) >= population_size
+        self.w = np.array(w)
+        print(self.w)
+    def _calculate(self, population):
+        B, *_ =  population.svd
+        sorted_idx = np.argsort(population.fitness)[::-1]
+        w = self.w
+        xw = np.sum(w[w>0,None]*population.raw_population[sorted_idx][w>0],axis=0)
         return population.mean + self.c * population.morph(xw)
 
 
     @classmethod
     def _get_kwargs(cls, config, key = ""):
         cls._config_required(
+            'population_size',
             'weights',
             'c_m'
         )

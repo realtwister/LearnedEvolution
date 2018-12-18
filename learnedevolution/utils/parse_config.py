@@ -3,7 +3,9 @@ class ParseConfig(object):
     # Parses configuration
     config_required = set()
     config_required_from_obj = ['type']
-    config_defaults = {};
+    config_defaults = dict(
+        epsilon = 1e-30,
+    )
     default_topic = ""
 
     @classmethod
