@@ -15,13 +15,19 @@ def load_step(evaldir, step):
         data = pickle.load(file)
     return data
 
+def load_pickle(path):
+    assert os.path.exists(path)
+    with open(path, 'rb') as file:
+        data = pickle.load(file)
+    return data
+
 def get_from_data(data, statistic):
     assert statistic in data[0][0], "Data should contain \"{}\"".format(statistic)
     result = [];
     for history in data:
         result.append([])
         for population in history:
-            result[-1].append(-population[statistic])
+            result[-1].append(population[statistic])
     return result
 
 def calculate_first_hit(series, targets, descending = True):
@@ -41,7 +47,7 @@ def calculate_first_hit(series, targets, descending = True):
 
 
 def plot_step_first_hit(histories, num_bins = 10, min_val=None, max_val = None, quantile = 0.20, epsilon = 1e-30):
-
+    histories = [-np.array(history) for history in histories]
     max_vals, min_vals = reduce(lambda res,x:(res[0]+[np.max(x)], res[1]+[np.min(x)]),
                                 histories,
                                 ([],[]))

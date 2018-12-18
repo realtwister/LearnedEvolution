@@ -18,6 +18,7 @@ class RLMean(MeanTarget):
     def _reset(self, initial_mean, initial_covariance):
         self._observation_space.reset();
         self._reward_fn.reset();
+        self.reward = 0
         self._agent.reset();
         self.i = 0;
 

@@ -1,13 +1,17 @@
+import numpy as np
 # GIT HASH: master ba9a07ef4aac41940ecd4b8f809233a201848218
 config = dict(
         dimension = 2,
         population_size = 100,
         algorithm = dict(
             mean_function = dict(
-                type = "CMAESMean",
+                type = "RLMean",
+                reward_function = dict(
+                        type = "DifferentialReward"
+                )
                 ),
             covariance_function = dict(
-                type = "CMAESCovariance"
+                type = "AMaLGaMCovariance"
                 ),
             convergence_criterion = dict(
                 type = "CovarianceConvergence"
@@ -15,7 +19,7 @@ config = dict(
             ),
         problem_suite = dict(
             clss = [
-                ['RotateProblem', 'TranslateProblem','Rosenbrock']
+                    ['RotateProblem', 'TranslateProblem','Rosenbrock']
                 ],
             ),
         benchmark = dict(

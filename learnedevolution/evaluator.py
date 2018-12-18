@@ -49,7 +49,7 @@ class Evaluator(ParseConfig):
         self.histories = [[]]
 
     def _save_population(self, *args, **kwargs):
-        self.histories[-1] +=[self.summarizer(self.algorithm._population_obj)]
+        self.histories[-1] +=[self.summarizer(self.algorithm._population_obj,self.algorithm)]
 
     def _finish_history(self):
         self.histories += [[]];
@@ -64,8 +64,13 @@ class Evaluator(ParseConfig):
             self.algorithm.maximize(problem.fitness);
             self._finish_history();
             self.i +=1;
+            print(self.i)
         self._finish_histories();
-        with open(os.path.join(self.logdir,self.name,self.step+'.pkl'), 'wb') as logfile:
+        if self.step is not None:
+            path = os.path.join(self.logdir,self.name,self.step+'.pkl')
+        else:
+            path = os.path.join(self.logdir, self.name+'.pkl')
+        with open(path, 'wb') as logfile:
             pickle.dump(self.histories, logfile);
         return self.histories;
 
@@ -78,7 +83,10 @@ class Evaluator(ParseConfig):
             os.makedirs(os.path.join(self.logdir,self.name));
 
     def copy_config_file(self, config_file, name="config.py"):
-        new_config = os.path.join(self.logdir, self.name, self.step+"."+name);
+        if self.step is None:
+            new_config = os.path.join(self.logdir, self.name+"."+name)
+        else:
+            new_config = os.path.join(self.logdir, self.name, self.step+"."+name);
         with open(config_file, 'r') as original: data = original.read()
         with open(new_config, 'w') as modified: modified.write("# GIT HASH: "+git_hash()+"\n" + data)
 
@@ -104,6 +112,8 @@ class Evaluator(ParseConfig):
             "summarizer"
         )
         cls._config_defaults(
+        restoredir = None,
+            step = None,
             seed = 1001,
             N_episodes = 100,
             summarizer = lambda pop: dict(mean_fitness=np.mean(pop.fitness), mean = pop.mean, covariance = pop.covariance),
