@@ -9,6 +9,7 @@ from .discretized import DiscretizeProblem
 def problem_classes():
     from .sphere import Sphere;
     from .rosenbrock import Rosenbrock;
+    from .ellipsoid import Ellipsoid;
     from .suite import ProblemSuite;
     from .translated import TranslateProblem;
     from .rotated import RotateProblem;

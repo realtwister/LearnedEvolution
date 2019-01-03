@@ -43,6 +43,10 @@ class Problem(RandomGeneratable):
         proto.params.add(key='optimum', value = self.optimum);
         return proto;
 
+    @property
+    def evaluations(self):
+        return self._evaluations
+
     def __str__(self):
         res = "------- Problem -------\n"
         res += " Type:\t\t {}\n".format(self._type);
