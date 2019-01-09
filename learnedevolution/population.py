@@ -114,11 +114,11 @@ class Population:
     @property
     def svd(self):
         if self._svd is None:
-            D,B = np.linalg.eigh(self._covariance);
+            B,D,BT = np.linalg.svd(self._covariance);
             if np.any(np.sqrt(D)<self._epsilon):
                 log.debug('Population eigenvalue smaller than epsilon(={})\n'.format(self._epsilon));
                 D = np.clip(D, self._epsilon, None);
-            self._svd = (B,D,B.T);
+            self._svd = (B,D,BT);
         return self._svd;
 
     @property

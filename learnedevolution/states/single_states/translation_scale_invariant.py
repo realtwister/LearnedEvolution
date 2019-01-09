@@ -20,6 +20,8 @@ class TranslationScaleInvariant(SingleState):
 
         F_m = np.mean(reference.fitness)
         F_s = np.std(reference.fitness)
+        if F_s < 1e-13:
+            F_s = 1e-13
         F = (population.fitness-F_m)/F_s
 
         state = np.append(P, F[:, None], axis=1);
