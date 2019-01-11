@@ -19,7 +19,7 @@ config = dict(
             ),
         problem_suite = dict(
             clss = [
-                    ['RotateProblem', 'TranslateProblem','Rosenbrock']
+                    ['RotateProblem', 'TranslateProblem','Ellipsoid']
                 ],
             ),
         benchmark = dict(
