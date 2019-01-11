@@ -16,7 +16,7 @@ def load_step(evaldir, step):
     return data
 
 def load_pickle(path):
-    assert os.path.exists(path)
+    assert os.path.exists(path), path+" does not exist"
     with open(path, 'rb') as file:
         data = pickle.load(file)
     return data
@@ -46,7 +46,7 @@ def calculate_first_hit(series, targets, descending = True):
     return hits, targets[:len(hits)]
 
 
-def plot_step_first_hit(histories, num_bins = 10, min_val=None, max_val = None, quantile = 0.20, epsilon = 1e-30):
+def plot_step_first_hit(histories, num_bins = 10, min_val=None, max_val = None, quantile = 0.20, epsilon = 1e-30, **kwargs):
     histories = [-np.array(history) for history in histories]
     max_vals, min_vals = reduce(lambda res,x:(res[0]+[np.max(x)], res[1]+[np.min(x)]),
                                 histories,
@@ -65,7 +65,7 @@ def plot_step_first_hit(histories, num_bins = 10, min_val=None, max_val = None, 
         first_hit = flatten(first_hits),
     )
     pd.DataFrame(data=data)
-    ax = sns.lineplot(x='target', y='first_hit', data=data, ci = "sd")
+    ax = sns.lineplot(x='target', y='first_hit', data=data, ci = "sd", **kwargs)
     return ax
 
 def plot_steps_first_hit(evaldir, steps, **kwargs):
