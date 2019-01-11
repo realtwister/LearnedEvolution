@@ -16,7 +16,8 @@ class PPOAgent(Agent):
         value_param = 0.001,
         epochs = 4,
         batch_size = 64,
-        learning_rate = 1e-6
+        learning_rate = 1e-6,
+        should_learn = True
         ):
         self.batch = BatchProvider(
             reward_discount = reward_discount,
@@ -31,7 +32,8 @@ class PPOAgent(Agent):
             batch_size = batch_size,
             learning_rate = learning_rate,
             observation_space = observation_space.gym_state_space,
-            action_space = observation_space.gym_action_space
+            action_space = observation_space.gym_action_space,
+            should_learn = should_learn
         )
 
     def reset(self):
@@ -79,7 +81,8 @@ class PPOAgent(Agent):
             'value_param',
             'epochs',
             'batch_size',
-            'learning_rate'
+            'learning_rate',
+            'should_learn'
         )
         cls._config_defaults(
             reward_discount = 0.99,
@@ -91,7 +94,8 @@ class PPOAgent(Agent):
             epochs = 4,
             batch_size = 64,
             learning_rate = 1e-6,
-            policy = {}
+            policy = {},
+            should_learn = True
         )
 
         kwargs = super()._get_kwargs(config, key = key);

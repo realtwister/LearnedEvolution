@@ -117,7 +117,8 @@ class PPO(object):
         observation_space = None,
         action_space = None,
         log_dir = None,
-        writer = None ):
+        writer = None,
+        should_learn = True ):
 
         # register properties
         self._env = env;
@@ -136,6 +137,8 @@ class PPO(object):
 
         self._epochs = epochs;
         self._batch_size = batch_size;
+
+        self.should_learn = should_learn
 
         self._adam_epsilon = adam_epsilon;
         self._learning_rate = learning_rate;
@@ -394,6 +397,8 @@ class PPO(object):
 
 
     def _learn(self):
+        if not self.should_learn:
+            return;
         self._update_old();
         self._batch._process_buffer();
         new = self._batch.get_new();
