@@ -49,7 +49,7 @@ class Evaluator(ParseConfig):
         self.histories = [[]]
 
     def _save_population(self, *args, **kwargs):
-        self.histories[-1] +=[self.summarizer(self.algorithm._population_obj,self.algorithm)]
+        self.histories[-1] +=[self.summarizer(self.algorithm._population_obj,self.algorithm, self.problem)]
 
     def _finish_history(self):
         self.histories += [[]];
@@ -61,6 +61,7 @@ class Evaluator(ParseConfig):
     def run(self):
         self._setup_histories();
         for i, problem in enumerate(self.problem_suite.iter(self.N_episodes)):
+            self.problem = problem
             self.algorithm.maximize(problem.fitness);
             self._finish_history();
             self.i +=1;
