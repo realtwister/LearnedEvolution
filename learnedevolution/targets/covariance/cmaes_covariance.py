@@ -156,23 +156,39 @@ class CMAESCovariance(CovarianceTarget):
         )
         cls._config_defaults(
             weights = lambda i,l: (np.log((l+1)/2)-np.log(i+1))/np.sum([max(0,np.log((l+1)/2)-np.log(i)) for i in range(1,l+1)]),
-            c_sigma = 0.2,
-            d_sigma = 1.,
-            c_c = 0.6,
-            c_1 = .1,
-            c_mu = .9,
+            c_sigma = None,
+            d_sigma = None,
+            c_c = None,
+            c_1 = None,
+            c_mu = None,
             epsilon = 1e-20
         )
 
         kwargs =  super()._get_kwargs(config, key = key);
+        d = kwargs['dimension']
+        w = kwargs['weights']
+        if callable(w):
+            ws = [w(i, kwargs['population_size']) for i in range(kwargs['population_size'])]
+        else:
+            ws = list(w)
+        ws = np.array(ws)
+        mu_eff = 1./np.sum(ws[ws>0]**2)
 
         if kwargs['c_c'] is None:
-            kwargs['c_c'] = 4/kwargs['dimension']
+            kwargs['c_c'] = (4.+mu_eff/d)/(d+2*mu_eff/d+4)
 
         if kwargs['c_sigma'] is None:
-            kwargs['c_sigma'] = 4/kwargs['dimension']
+            kwargs['c_sigma'] = (mu_eff+2.)/(d+mu_eff+5)
 
         if kwargs['c_1'] is None:
-            kwargs['c_1'] = 2/kwargs['dimension']**2
+            kwargs['c_1'] = 2./(d+1.3)**2
+
+        if kwargs['c_mu'] is None:
+            kwargs['c_mu'] = mu_eff/kwargs['dimension']**2
+            if kwargs['c_mu']+kwargs['c_1'] > 1:
+                kwargs['c_mu'] = 1.-kwargs['c_1']
+
+        if kwargs['d_sigma'] is None:
+            kwargs['d_sigma'] = 1+np.sqrt(mu_eff/kwargs['dimension'])
 
         return kwargs
