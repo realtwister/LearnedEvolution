@@ -115,3 +115,4 @@ def main(args):
             break;
         sleep(1)
     print("All experiments have started or finished on session", session.name)
+    sleep(10)
